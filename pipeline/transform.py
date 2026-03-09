@@ -87,7 +87,9 @@ def parse_organizations(raw_organizations: str | None) -> list[str]:
     for org in raw_organizations.split(";"):
         org = org.strip().lower()
         if org:
-            orgs.append(org)
+            name = org.split(",")[0]  # strip trailing offset like ",1287"
+            if name:
+                orgs.append(name)
     return list(dict.fromkeys(orgs))  # deduplicate, preserve order
 
 
