@@ -1,6 +1,7 @@
 """Transform raw GDELT GKG data into clean article records."""
 
 import logging
+import re
 from collections import Counter
 
 import pandas as pd
@@ -75,19 +76,31 @@ def parse_date(raw_date) -> str | None:
     return f"{s[:4]}-{s[4:6]}-{s[6:8]}"
 
 
-AI_COMPANIES = [
+# Simple substring matches (company name is distinctive enough)
+_SUBSTRING_COMPANIES = [
     "anthropic", "openai", "google", "meta", "xai", "mistral",
     "anduril", "palantir", "microsoft", "amazon", "apple", "nvidia",
 ]
 
+# Regex-based matches: map canonical label → pattern (word-boundary matched)
+_REGEX_COMPANIES = {
+    "department_of_defense": re.compile(
+        r"\b(dod|dow|department of (war|defense|defence))\b", re.IGNORECASE
+    ),
+}
+
 
 def parse_mentioned_companies(extras: str | None, url: str | None) -> list[str]:
-    """Detect AI company mentions by scanning extras and url fields.
+    """Detect AI company and entity mentions by scanning extras and url fields.
 
-    Returns a deduplicated list of company names (lowercase) found in the text.
+    Returns a deduplicated list of canonical names found in the text.
     """
     text = " ".join(filter(None, [extras, url])).lower()
-    return [company for company in AI_COMPANIES if company in text]
+    found = [c for c in _SUBSTRING_COMPANIES if c in text]
+    for label, pattern in _REGEX_COMPANIES.items():
+        if pattern.search(text):
+            found.append(label)
+    return found
 
 
 def parse_organizations(raw_organizations: str | None) -> list[str]:

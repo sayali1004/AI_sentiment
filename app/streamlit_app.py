@@ -152,9 +152,10 @@ SENTIMENT_COLOR_SCALE = [
     [1.0,  "#006837"],
 ]
 
-ALL_ORGS = ["anthropic", "openai", "google", "meta", "xai", "anduril", "palantir"]
+ALL_ORGS = ["anthropic", "openai", "google", "meta", "xai", "anduril", "palantir", "department_of_defense"]
 FOUNDATION_MODEL_ORGS = ["anthropic", "openai", "google", "meta", "xai"]
 WEAPONS_ORGS = ["anduril", "palantir"]
+GOVERNMENT_ORGS = ["department_of_defense"]
 
 PRESET_EVENTS = {
     "Superbowl (Feb 9, 2026)": {
@@ -322,7 +323,7 @@ with tab3:
         "Filter by company (optional)",
         options=ALL_ORGS,
         default=[],
-        format_func=lambda x: x.title(),
+        format_func=lambda x: x.replace("_", " ").title(),
         help="Leave empty to show all AI articles regardless of organization mention.",
     )
 
@@ -398,23 +399,30 @@ with tab4:
 
     # Company / group selector
     st.subheader("Companies to compare")
-    col_f, col_w = st.columns(2)
+    col_f, col_w, col_g = st.columns(3)
     with col_f:
         selected_foundation = st.multiselect(
             "Foundation model companies",
             options=FOUNDATION_MODEL_ORGS,
             default=["anthropic", "openai", "google"],
-            format_func=str.title,
+            format_func=lambda x: x.replace("_", " ").title(),
         )
     with col_w:
         selected_weapons = st.multiselect(
             "Autonomous weapons companies",
             options=WEAPONS_ORGS,
             default=WEAPONS_ORGS,
-            format_func=str.title,
+            format_func=lambda x: x.replace("_", " ").title(),
+        )
+    with col_g:
+        selected_government = st.multiselect(
+            "Government entities",
+            options=GOVERNMENT_ORGS,
+            default=GOVERNMENT_ORGS,
+            format_func=lambda x: x.replace("_", " ").title(),
         )
 
-    org_list = selected_foundation + selected_weapons
+    org_list = selected_foundation + selected_weapons + selected_government
 
     if not org_list:
         st.warning("Select at least one company to compare.")
