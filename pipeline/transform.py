@@ -75,6 +75,21 @@ def parse_date(raw_date) -> str | None:
     return f"{s[:4]}-{s[4:6]}-{s[6:8]}"
 
 
+AI_COMPANIES = [
+    "anthropic", "openai", "google", "meta", "xai", "mistral",
+    "anduril", "palantir", "microsoft", "amazon", "apple", "nvidia",
+]
+
+
+def parse_mentioned_companies(extras: str | None, url: str | None) -> list[str]:
+    """Detect AI company mentions by scanning extras and url fields.
+
+    Returns a deduplicated list of company names (lowercase) found in the text.
+    """
+    text = " ".join(filter(None, [extras, url])).lower()
+    return [company for company in AI_COMPANIES if company in text]
+
+
 def parse_organizations(raw_organizations: str | None) -> list[str]:
     """Parse V2Organizations semicolon-separated string into a deduplicated list.
 
@@ -182,7 +197,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
             "avg_tone": avg_tone,
             "published_date": published_date,
             "themes": parse_themes(row.get("raw_themes")),
-            "organizations": parse_organizations(row.get("raw_organizations")),
+            "organizations": parse_mentioned_companies(row.get("extras"), row.get("url")),
             **_location_columns(specific, "specific"),
             **_location_columns(mentioned, "mentioned"),
         }
