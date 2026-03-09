@@ -65,6 +65,21 @@ CREATE POLICY "Service role delete"
     ON articles FOR DELETE
     USING (true);
 
+-- =============================================================
+-- Migration: add organizations column + new indexes
+-- =============================================================
+
+ALTER TABLE articles
+    ADD COLUMN IF NOT EXISTS organizations TEXT[];
+
+-- GIN index for fast array membership queries (e.g. organizations && '{anthropic}')
+CREATE INDEX IF NOT EXISTS idx_articles_organizations
+    ON articles USING GIN (organizations);
+
+-- Composite index for US state queries
+CREATE INDEX IF NOT EXISTS idx_articles_us_state_date
+    ON articles (mentioned_country_code, mentioned_adm1_code, published_date);
+
 -- 4. RPC function: aggregate sentiment by country
 CREATE OR REPLACE FUNCTION get_sentiment_by_country(
     start_date DATE,
@@ -86,4 +101,79 @@ AS $$
     WHERE published_date BETWEEN start_date AND end_date
       AND mentioned_country_code IS NOT NULL
     GROUP BY mentioned_country_code;
+$$;
+
+-- 5. RPC function: aggregate sentiment by US state
+CREATE OR REPLACE FUNCTION get_sentiment_by_us_state(
+    start_date DATE,
+    end_date   DATE
+)
+RETURNS TABLE (
+    adm1_code     TEXT,
+    avg_tone      DOUBLE PRECISION,
+    article_count BIGINT
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        mentioned_adm1_code AS adm1_code,
+        AVG(articles.avg_tone) AS avg_tone,
+        COUNT(*) AS article_count
+    FROM articles
+    WHERE published_date BETWEEN start_date AND end_date
+      AND mentioned_country_code = 'US'
+      AND mentioned_adm1_code IS NOT NULL
+    GROUP BY mentioned_adm1_code;
+$$;
+
+-- 6. RPC function: daily sentiment timeseries (optional org filter)
+CREATE OR REPLACE FUNCTION get_sentiment_timeseries(
+    start_date DATE,
+    end_date   DATE,
+    org_filter TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    date          DATE,
+    avg_tone      DOUBLE PRECISION,
+    article_count BIGINT
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        published_date AS date,
+        AVG(articles.avg_tone) AS avg_tone,
+        COUNT(*) AS article_count
+    FROM articles
+    WHERE published_date BETWEEN start_date AND end_date
+      AND (org_filter IS NULL OR organizations && org_filter)
+    GROUP BY published_date
+    ORDER BY published_date;
+$$;
+
+-- 7. RPC function: sentiment aggregated per organization
+CREATE OR REPLACE FUNCTION get_sentiment_by_org(
+    start_date DATE,
+    end_date   DATE,
+    org_list   TEXT[]
+)
+RETURNS TABLE (
+    org_name      TEXT,
+    avg_tone      DOUBLE PRECISION,
+    article_count BIGINT
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        org AS org_name,
+        AVG(a.avg_tone) AS avg_tone,
+        COUNT(*) AS article_count
+    FROM articles a,
+         UNNEST(a.organizations) AS org
+    WHERE a.published_date BETWEEN start_date AND end_date
+      AND a.organizations && org_list
+      AND org = ANY(org_list)
+    GROUP BY org;
 $$;

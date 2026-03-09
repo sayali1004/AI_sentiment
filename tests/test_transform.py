@@ -10,6 +10,7 @@ from pipeline.transform import (
     select_most_mentioned,
     parse_date,
     parse_themes,
+    parse_organizations,
     transform,
 )
 
@@ -129,6 +130,36 @@ def test_parse_themes_empty():
     assert parse_themes("") == []
 
 
+# --- parse_organizations ---
+
+def test_parse_organizations_basic():
+    result = parse_organizations("anthropic;openai;palantir")
+    assert result == ["anthropic", "openai", "palantir"]
+
+
+def test_parse_organizations_deduplicates():
+    result = parse_organizations("openai;anthropic;openai")
+    assert result == ["openai", "anthropic"]
+
+
+def test_parse_organizations_lowercases():
+    result = parse_organizations("Anthropic;OpenAI;Google")
+    assert result == ["anthropic", "openai", "google"]
+
+
+def test_parse_organizations_none():
+    assert parse_organizations(None) == []
+
+
+def test_parse_organizations_empty():
+    assert parse_organizations("") == []
+
+
+def test_parse_organizations_strips_whitespace():
+    result = parse_organizations(" anthropic ; openai ")
+    assert result == ["anthropic", "openai"]
+
+
 # --- transform (integration) ---
 
 def test_transform_basic():
@@ -139,12 +170,14 @@ def test_transform_basic():
         "raw_tone": "-2.5,1.0,2.0,3.0,4.0,5.0,50",
         "raw_date": 20250615120000,
         "raw_themes": "TAX_FNCACT_ARTIFICIAL_INTELLIGENCE,100",
+        "raw_organizations": "anthropic;openai",
     }])
     result = transform(raw)
     assert len(result) == 1
     assert result.iloc[0]["title"] == "AI Boom"
     assert result.iloc[0]["avg_tone"] == pytest.approx(-2.5)
     assert result.iloc[0]["mentioned_country_code"] == "US"
+    assert result.iloc[0]["organizations"] == ["anthropic", "openai"]
 
 
 def test_transform_drops_missing_country():

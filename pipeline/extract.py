@@ -17,6 +17,7 @@ SELECT
     V2Tone AS raw_tone,
     DATE AS raw_date,
     V2Themes AS raw_themes,
+    V2Organizations AS raw_organizations,
     SharingImage
 FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE _PARTITIONTIME BETWEEN TIMESTAMP(@start_date) AND TIMESTAMP(@end_date)

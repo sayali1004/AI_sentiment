@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: "0 6 * * *"  # 06:00 UTC daily
   workflow_dispatch:       # Manual trigger
+    inputs:
+      start_date:
+        description: "Start date (YYYY-MM-DD). Leave blank for default (3 days ago)."
+        required: false
+        default: ""
+      end_date:
+        description: "End date (YYYY-MM-DD). Leave blank for default (yesterday)."
+        required: false
+        default: ""
 
 jobs:
   run-pipeline:
@@ -35,4 +44,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: python -m pipeline.run
+        run: |
+          if [ -n "${{ github.event.inputs.start_date }}" ] && [ -n "${{ github.event.inputs.end_date }}" ]; then
+            python -m pipeline.run "${{ github.event.inputs.start_date }}" "${{ github.event.inputs.end_date }}"
+          else
+            python -m pipeline.run
+          fi

@@ -75,6 +75,22 @@ def parse_date(raw_date) -> str | None:
     return f"{s[:4]}-{s[4:6]}-{s[6:8]}"
 
 
+def parse_organizations(raw_organizations: str | None) -> list[str]:
+    """Parse V2Organizations semicolon-separated string into a deduplicated list.
+
+    Input example: "anthropic;openai;palantir;openai"
+    Returns: ["anthropic", "openai", "palantir"]
+    """
+    if not raw_organizations:
+        return []
+    orgs = []
+    for org in raw_organizations.split(";"):
+        org = org.strip().lower()
+        if org:
+            orgs.append(org)
+    return list(dict.fromkeys(orgs))  # deduplicate, preserve order
+
+
 def parse_themes(raw_themes: str | None) -> list[str]:
     """Split V2Themes on semicolons and strip offset suffixes."""
     if not raw_themes:
@@ -164,6 +180,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
             "avg_tone": avg_tone,
             "published_date": published_date,
             "themes": parse_themes(row.get("raw_themes")),
+            "organizations": parse_organizations(row.get("raw_organizations")),
             **_location_columns(specific, "specific"),
             **_location_columns(mentioned, "mentioned"),
         }
