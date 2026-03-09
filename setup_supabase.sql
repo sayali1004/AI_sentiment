@@ -122,7 +122,7 @@ AS $$
         COUNT(*) AS article_count
     FROM articles
     WHERE published_date BETWEEN start_date AND end_date
-      AND mentioned_country_code = 'US'
+      AND TRIM(mentioned_country_code) = 'US'
       AND mentioned_adm1_code IS NOT NULL
     GROUP BY mentioned_adm1_code;
 $$;
@@ -172,7 +172,8 @@ AS $$
         COUNT(*) AS article_count
     FROM articles a,
          UNNEST(a.organizations) AS org
-    WHERE a.published_date BETWEEN start_date AND end_date
+    WHERE a.organizations IS NOT NULL
+      AND a.published_date BETWEEN start_date AND end_date
       AND a.organizations && org_list
       AND org = ANY(org_list)
     GROUP BY org;

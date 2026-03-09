@@ -56,7 +56,10 @@ def fetch_sentiment_by_us_state(start_date: str, end_date: str) -> pd.DataFrame:
 @st.cache_data(ttl=3600)
 def fetch_sentiment_timeseries(start_date: str, end_date: str, org_filter: list[str] | None = None) -> pd.DataFrame:
     client = get_supabase_client()
-    params = {"start_date": start_date, "end_date": end_date, "org_filter": org_filter}
+    # Bug 2 fix: only include org_filter when it has values so SQL default NULL applies
+    params = {"start_date": start_date, "end_date": end_date}
+    if org_filter:
+        params["org_filter"] = org_filter
     response = client.rpc("get_sentiment_timeseries", params).execute()
     if response.data:
         df = pd.DataFrame(response.data)
@@ -75,6 +78,19 @@ def fetch_sentiment_by_org(start_date: str, end_date: str, org_list: list[str]) 
     if response.data:
         return pd.DataFrame(response.data)
     return pd.DataFrame(columns=["org_name", "avg_tone", "article_count"])
+
+
+def fetch_timeseries_per_org(start_date: str, end_date: str, orgs: list[str]) -> pd.DataFrame:
+    """Fetch daily timeseries for each org separately and combine."""
+    frames = []
+    for org in orgs:
+        df = fetch_sentiment_timeseries(start_date, end_date, [org])
+        if not df.empty:
+            df["org"] = org.replace("_", " ").title()
+            frames.append(df)
+    if frames:
+        return pd.concat(frames, ignore_index=True)
+    return pd.DataFrame(columns=["date", "avg_tone", "article_count", "org"])
 
 
 # ------------------------------------------------------------------
@@ -123,8 +139,6 @@ FIPS_TO_ISO3 = {
 }
 
 # GDELT adm1 codes for US states → Plotly USA-states abbreviations
-# GDELT format: "US" + 2-digit FIPS state code (e.g. "US06" = California)
-# Plotly USA-states uses postal codes (e.g. "CA")
 GDELT_ADM1_TO_STATE = {
     "US01": "AL", "US02": "AK", "US04": "AZ", "US05": "AR", "US06": "CA",
     "US08": "CO", "US09": "CT", "US10": "DE", "US11": "DC", "US12": "FL",
@@ -157,24 +171,6 @@ FOUNDATION_MODEL_ORGS = ["anthropic", "openai", "google", "meta", "xai"]
 WEAPONS_ORGS = ["anduril", "palantir"]
 GOVERNMENT_ORGS = ["department_of_defense"]
 
-PRESET_EVENTS = {
-    "Superbowl (Feb 9, 2026)": {
-        "event_date": date(2026, 2, 9),
-        "before_start": date(2026, 1, 26),
-        "before_end": date(2026, 2, 8),
-        "after_start": date(2026, 2, 10),
-        "after_end": date(2026, 2, 23),
-        "description": "Did Anthropic's Super Bowl ad shift AI sentiment?",
-    },
-    "Anthropic vs DOW (custom)": {
-        "event_date": None,  # user-configurable
-        "before_start": None,
-        "before_end": None,
-        "after_start": None,
-        "after_end": None,
-        "description": "Did the Pentagon dispute shift AI sentiment among weapons vs foundation model companies?",
-    },
-}
 
 # ------------------------------------------------------------------
 # Sidebar
@@ -191,18 +187,143 @@ if start_date > end_date:
     st.sidebar.error("Start date must be before end date.")
     st.stop()
 
+
+# ------------------------------------------------------------------
+# Shared event tab renderer
+# ------------------------------------------------------------------
+def render_event_tab(
+    event_date: date,
+    default_orgs: list[str],
+    org_options: dict,
+    window_key: str,
+    event_date_configurable: bool = False,
+    event_date_key: str = None,
+    event_date_default: date = None,
+):
+    """Render the 3-panel before/after event analysis."""
+    if event_date_configurable:
+        event_date = st.date_input(
+            "Event date",
+            value=event_date_default or event_date,
+            key=event_date_key,
+        )
+
+    weeks = st.slider("Window size (weeks)", 1, 4, 2, key=window_key)
+
+    before_end = event_date - timedelta(days=1)
+    before_start = event_date - timedelta(weeks=weeks)
+    after_start = event_date + timedelta(days=1)
+    after_end = event_date + timedelta(weeks=weeks)
+
+    st.caption(
+        f"Before: {before_start} to {before_end}  |  "
+        f"Event: {event_date}  |  "
+        f"After: {after_start} to {after_end}"
+    )
+
+    # Company selector
+    st.subheader("Companies to compare")
+    selected_orgs = []
+    cols = st.columns(len(org_options))
+    for col, (group_label, group_orgs) in zip(cols, org_options.items()):
+        with col:
+            sel = st.multiselect(
+                group_label,
+                options=group_orgs,
+                default=[o for o in group_orgs if o in default_orgs],
+                format_func=lambda x: x.replace("_", " ").title(),
+                key=f"{window_key}_{group_label}",
+            )
+            selected_orgs.extend(sel)
+
+    if not selected_orgs:
+        st.warning("Select at least one company to compare.")
+        return
+
+    df_before = fetch_sentiment_by_org(before_start.isoformat(), before_end.isoformat(), selected_orgs)
+    df_after = fetch_sentiment_by_org(after_start.isoformat(), after_end.isoformat(), selected_orgs)
+
+    if df_before.empty and df_after.empty:
+        st.info("No data found for the selected companies and date windows.")
+        return
+
+    df_before["period"] = "Before"
+    df_after["period"] = "After"
+    df_combined = pd.concat([df_before, df_after], ignore_index=True)
+    df_combined["org_name"] = df_combined["org_name"].str.replace("_", " ").str.title()
+
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        st.subheader("Average Tone Before vs After")
+        fig_tone = px.bar(
+            df_combined,
+            x="org_name",
+            y="avg_tone",
+            color="period",
+            barmode="group",
+            color_discrete_map={"Before": "#74add1", "After": "#f46d43"},
+            labels={"org_name": "Company", "avg_tone": "Avg Tone", "period": "Period"},
+        )
+        fig_tone.add_hline(y=0, line_dash="dot", line_color="gray")
+        fig_tone.update_layout(margin=dict(l=0, r=0, t=10, b=0))
+        st.plotly_chart(fig_tone, use_container_width=True)
+
+    with col_right:
+        st.subheader("Article Volume Before vs After")
+        fig_vol = px.bar(
+            df_combined,
+            x="org_name",
+            y="article_count",
+            color="period",
+            barmode="group",
+            color_discrete_map={"Before": "#74add1", "After": "#f46d43"},
+            labels={"org_name": "Company", "article_count": "Article Count", "period": "Period"},
+        )
+        fig_vol.update_layout(margin=dict(l=0, r=0, t=10, b=0))
+        st.plotly_chart(fig_vol, use_container_width=True)
+
+    st.subheader("Daily Sentiment Trend Across Full Window")
+    df_ts = fetch_timeseries_per_org(before_start.isoformat(), after_end.isoformat(), selected_orgs)
+
+    if df_ts.empty:
+        st.info("No timeseries data available.")
+    else:
+        fig_ts = px.line(
+            df_ts,
+            x="date",
+            y="avg_tone",
+            color="org",
+            labels={"date": "Date", "avg_tone": "Avg Tone", "org": "Company"},
+            title="Daily Avg Tone by Company",
+        )
+        fig_ts.add_vline(
+            x=event_date.isoformat(),
+            line_dash="dash",
+            line_color="red",
+            annotation_text="Event",
+            annotation_position="top right",
+        )
+        fig_ts.update_layout(margin=dict(l=0, r=0, t=40, b=0), hovermode="x unified")
+        st.plotly_chart(fig_ts, use_container_width=True)
+
+    with st.expander("Raw data"):
+        st.dataframe(df_combined, use_container_width=True)
+
+
 # ------------------------------------------------------------------
 # Tabs
 # ------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
-    "🌍 World Overview",
+    "🌍 Global AI Sentiment Overview",
+    "🏈 Super Bowl — Did Anthropic's Ad Shift Sentiment?",
+    "⚔️ DOD Dispute — Did the Pentagon Fight Shift Sentiment?",
     "🇺🇸 USA Deep Dive",
-    "📈 Trends Over Time",
-    "🔍 Event Analysis",
 ])
 
+
 # ==================================================================
-# TAB 1: World Overview
+# TAB 1: Global AI Sentiment Overview
 # ==================================================================
 with tab1:
     st.header("Global AI Sentiment & Volume")
@@ -218,6 +339,8 @@ with tab1:
         col2.metric("Total Articles", int(df_world["article_count"].sum()))
         col3.metric("Global Avg Tone", f"{df_world['avg_tone'].mean():.2f}")
 
+        # Bug 1 fix: strip CHAR(2) trailing whitespace before dict lookup
+        df_world["country_code"] = df_world["country_code"].str.strip()
         df_world["iso3"] = df_world["country_code"].map(FIPS_TO_ISO3)
         df_mapped = df_world.dropna(subset=["iso3"])
 
@@ -258,9 +381,52 @@ with tab1:
 
 
 # ==================================================================
-# TAB 2: USA Deep Dive
+# TAB 2: Super Bowl
 # ==================================================================
 with tab2:
+    st.header("Super Bowl LX — Did Anthropic's Ad Shift AI Sentiment?")
+    st.markdown(
+        "Anthropic ran a major ad during Super Bowl LX on **February 9, 2026**. "
+        "Use the window slider to adjust how many weeks before/after to compare."
+    )
+
+    render_event_tab(
+        event_date=date(2026, 2, 9),
+        default_orgs=["anthropic", "openai", "google"],
+        org_options={"Foundation model companies": FOUNDATION_MODEL_ORGS},
+        window_key="superbowl",
+    )
+
+
+# ==================================================================
+# TAB 3: DOD Dispute
+# ==================================================================
+with tab3:
+    st.header("Pentagon AI Dispute — Did the DOD Fight Shift Sentiment?")
+    st.markdown(
+        "Explore how the Department of Defense dispute affected AI media coverage "
+        "across weapons companies, foundation models, and government entities."
+    )
+
+    render_event_tab(
+        event_date=date(2026, 1, 1),
+        default_orgs=["anthropic", "openai", "google", "anduril", "palantir", "department_of_defense"],
+        org_options={
+            "Foundation models": FOUNDATION_MODEL_ORGS,
+            "Weapons companies": WEAPONS_ORGS,
+            "Government": GOVERNMENT_ORGS,
+        },
+        window_key="dod",
+        event_date_configurable=True,
+        event_date_key="dod_event_date",
+        event_date_default=date(2026, 1, 1),
+    )
+
+
+# ==================================================================
+# TAB 4: USA Deep Dive
+# ==================================================================
+with tab4:
     st.header("US State-Level AI Sentiment & Volume")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
@@ -277,7 +443,9 @@ with tab2:
         col2.metric("Total Articles", int(df_us["article_count"].sum()))
         col3.metric("US Avg Tone", f"{df_us['avg_tone'].mean():.2f}")
 
-        us_metric = st.radio("Color map by", ["Sentiment (avg tone)", "Article volume"], horizontal=True, key="us_metric")
+        us_metric = st.radio(
+            "Color map by", ["Sentiment (avg tone)", "Article volume"], horizontal=True, key="us_metric"
+        )
 
         if us_metric == "Sentiment (avg tone)":
             fig_us = px.choropleth(
@@ -310,164 +478,3 @@ with tab2:
 
         with st.expander("Raw data"):
             st.dataframe(df_us.sort_values("article_count", ascending=False), use_container_width=True)
-
-
-# ==================================================================
-# TAB 3: Trends Over Time
-# ==================================================================
-with tab3:
-    st.header("AI Sentiment Trends Over Time")
-
-    org_options = ["(All articles)"] + ALL_ORGS
-    selected_orgs = st.multiselect(
-        "Filter by company (optional)",
-        options=ALL_ORGS,
-        default=[],
-        format_func=lambda x: x.replace("_", " ").title(),
-        help="Leave empty to show all AI articles regardless of organization mention.",
-    )
-
-    org_filter_param = selected_orgs if selected_orgs else None
-    df_ts = fetch_sentiment_timeseries(start_date.isoformat(), end_date.isoformat(), org_filter_param)
-
-    if df_ts.empty:
-        st.info("No timeseries data available for the selected filters.")
-    else:
-        fig_ts = go.Figure()
-
-        fig_ts.add_trace(go.Scatter(
-            x=df_ts["date"],
-            y=df_ts["avg_tone"],
-            name="Avg Tone",
-            line=dict(color="#1a9850", width=2),
-            yaxis="y1",
-        ))
-
-        fig_ts.add_trace(go.Bar(
-            x=df_ts["date"],
-            y=df_ts["article_count"],
-            name="Article Volume",
-            marker_color="rgba(100, 150, 220, 0.4)",
-            yaxis="y2",
-        ))
-
-        fig_ts.update_layout(
-            title="Daily AI Sentiment & Volume" + (f" — {', '.join(o.title() for o in selected_orgs)}" if selected_orgs else ""),
-            xaxis=dict(title="Date"),
-            yaxis=dict(title="Avg Tone", side="left", showgrid=False),
-            yaxis2=dict(title="Article Count", side="right", overlaying="y", showgrid=False),
-            legend=dict(x=0.01, y=0.99),
-            hovermode="x unified",
-            margin=dict(l=0, r=0, t=50, b=0),
-        )
-        st.plotly_chart(fig_ts, use_container_width=True)
-
-        with st.expander("Raw data"):
-            st.dataframe(df_ts, use_container_width=True)
-
-
-# ==================================================================
-# TAB 4: Event Analysis
-# ==================================================================
-with tab4:
-    st.header("Event Analysis: Before vs After")
-
-    # Event selector
-    event_name = st.selectbox("Select event", list(PRESET_EVENTS.keys()))
-    event_cfg = PRESET_EVENTS[event_name]
-    st.caption(event_cfg["description"])
-
-    if event_name == "Anthropic vs DOW (custom)":
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.subheader("Before window")
-            ev_before_start = st.date_input("Before: start", value=date(2026, 1, 1), key="ev_bs")
-            ev_before_end = st.date_input("Before: end", value=date(2026, 1, 31), key="ev_be")
-        with col_b:
-            st.subheader("After window")
-            ev_after_start = st.date_input("After: start", value=date(2026, 2, 1), key="ev_as")
-            ev_after_end = st.date_input("After: end", value=date(2026, 2, 28), key="ev_ae")
-    else:
-        ev_before_start = event_cfg["before_start"]
-        ev_before_end = event_cfg["before_end"]
-        ev_after_start = event_cfg["after_start"]
-        ev_after_end = event_cfg["after_end"]
-        st.info(
-            f"Before window: {ev_before_start} – {ev_before_end}  |  "
-            f"After window: {ev_after_start} – {ev_after_end}"
-        )
-
-    # Company / group selector
-    st.subheader("Companies to compare")
-    col_f, col_w, col_g = st.columns(3)
-    with col_f:
-        selected_foundation = st.multiselect(
-            "Foundation model companies",
-            options=FOUNDATION_MODEL_ORGS,
-            default=["anthropic", "openai", "google"],
-            format_func=lambda x: x.replace("_", " ").title(),
-        )
-    with col_w:
-        selected_weapons = st.multiselect(
-            "Autonomous weapons companies",
-            options=WEAPONS_ORGS,
-            default=WEAPONS_ORGS,
-            format_func=lambda x: x.replace("_", " ").title(),
-        )
-    with col_g:
-        selected_government = st.multiselect(
-            "Government entities",
-            options=GOVERNMENT_ORGS,
-            default=GOVERNMENT_ORGS,
-            format_func=lambda x: x.replace("_", " ").title(),
-        )
-
-    org_list = selected_foundation + selected_weapons + selected_government
-
-    if not org_list:
-        st.warning("Select at least one company to compare.")
-    elif ev_before_start and ev_before_end and ev_after_start and ev_after_end:
-        df_before = fetch_sentiment_by_org(ev_before_start.isoformat(), ev_before_end.isoformat(), org_list)
-        df_after = fetch_sentiment_by_org(ev_after_start.isoformat(), ev_after_end.isoformat(), org_list)
-
-        if df_before.empty and df_after.empty:
-            st.info("No data found for the selected companies and date windows.")
-        else:
-            df_before["period"] = "Before"
-            df_after["period"] = "After"
-            df_combined = pd.concat([df_before, df_after], ignore_index=True)
-            df_combined["org_name"] = df_combined["org_name"].str.title()
-
-            col_left, col_right = st.columns(2)
-
-            with col_left:
-                st.subheader("Average Tone Before vs After")
-                fig_tone = px.bar(
-                    df_combined,
-                    x="org_name",
-                    y="avg_tone",
-                    color="period",
-                    barmode="group",
-                    color_discrete_map={"Before": "#74add1", "After": "#f46d43"},
-                    labels={"org_name": "Company", "avg_tone": "Avg Tone", "period": "Period"},
-                )
-                fig_tone.add_hline(y=0, line_dash="dot", line_color="gray")
-                fig_tone.update_layout(margin=dict(l=0, r=0, t=10, b=0))
-                st.plotly_chart(fig_tone, use_container_width=True)
-
-            with col_right:
-                st.subheader("Article Volume Before vs After")
-                fig_vol = px.bar(
-                    df_combined,
-                    x="org_name",
-                    y="article_count",
-                    color="period",
-                    barmode="group",
-                    color_discrete_map={"Before": "#74add1", "After": "#f46d43"},
-                    labels={"org_name": "Company", "article_count": "Article Count", "period": "Period"},
-                )
-                fig_vol.update_layout(margin=dict(l=0, r=0, t=10, b=0))
-                st.plotly_chart(fig_vol, use_container_width=True)
-
-            with st.expander("Raw data"):
-                st.dataframe(df_combined, use_container_width=True)
