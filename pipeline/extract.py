@@ -28,6 +28,33 @@ WHERE _PARTITIONTIME BETWEEN TIMESTAMP(@start_date) AND TIMESTAMP(@end_date)
     OR LOWER(Extras) LIKE '%chatgpt%'
     OR LOWER(Extras) LIKE '%openai%'
     OR LOWER(Extras) LIKE '%large language model%'
+    -- Anthropic (company name currently missing!)
+    OR LOWER(Extras) LIKE '%anthropic%'
+    OR LOWER(Extras) LIKE '%claude%'
+    -- Google
+    OR LOWER(Extras) LIKE '%gemini%'
+    OR LOWER(Extras) LIKE '%deepmind%'
+    -- Meta
+    OR LOWER(Extras) LIKE '%meta ai%'
+    OR LOWER(Extras) LIKE '%llama%'
+    -- xAI
+    OR LOWER(Extras) LIKE '%xai%'
+    OR LOWER(Extras) LIKE '%grok%'
+    -- Mistral
+    OR LOWER(Extras) LIKE '%mistral%'
+    OR LOWER(Extras) LIKE '%mixtral%'
+    -- Microsoft
+    OR LOWER(Extras) LIKE '%copilot%'
+    -- DeepSeek (company + model family)
+    OR LOWER(Extras) LIKE '%deepseek%'
+    -- Alibaba / Qwen
+    OR LOWER(Extras) LIKE '%qwen%'
+    -- OpenAI additional products
+    OR LOWER(Extras) LIKE '%dall-e%'
+    OR LOWER(Extras) LIKE '%sora%'
+    -- Image / art models
+    OR LOWER(Extras) LIKE '%stable diffusion%'
+    OR LOWER(Extras) LIKE '%midjourney%'
   )
 """
 

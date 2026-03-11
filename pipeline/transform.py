@@ -80,6 +80,7 @@ def parse_date(raw_date) -> str | None:
 _SUBSTRING_COMPANIES = [
     "anthropic", "openai", "google", "meta", "xai", "mistral",
     "anduril", "palantir", "microsoft", "amazon", "apple", "nvidia",
+    "deepseek", "qwen", "midjourney", "stability",
 ]
 
 # Regex-based matches: map canonical label → pattern (word-boundary matched)
@@ -89,6 +90,28 @@ _REGEX_COMPANIES = {
     ),
 }
 
+# Product name → parent company mapping
+_PRODUCT_TO_COMPANY = {
+    "claude":            "anthropic",
+    "gemini":            "google",
+    "bard":              "google",
+    "deepmind":          "google",
+    "gemma":             "google",
+    "chatgpt":           "openai",
+    "gpt-4":             "openai",
+    "gpt4":              "openai",
+    "dall-e":            "openai",
+    "dalle":             "openai",
+    "sora":              "openai",
+    "whisper":           "openai",
+    "grok":              "xai",
+    "llama":             "meta",
+    "copilot":           "microsoft",
+    "mixtral":           "mistral",
+    "stable diffusion":  "stability_ai",
+    "midjourney":        "midjourney",
+}
+
 
 def parse_mentioned_companies(extras: str | None, url: str | None) -> list[str]:
     """Detect AI company and entity mentions by scanning extras and url fields.
@@ -96,11 +119,21 @@ def parse_mentioned_companies(extras: str | None, url: str | None) -> list[str]:
     Returns a deduplicated list of canonical names found in the text.
     """
     text = " ".join(filter(None, [extras, url])).lower()
-    found = [c for c in _SUBSTRING_COMPANIES if c in text]
+    found = set()
+
+    for c in _SUBSTRING_COMPANIES:
+        if c in text:
+            found.add(c)
+
     for label, pattern in _REGEX_COMPANIES.items():
         if pattern.search(text):
-            found.append(label)
-    return found
+            found.add(label)
+
+    for product, company in _PRODUCT_TO_COMPANY.items():
+        if product in text:
+            found.add(company)
+
+    return list(found)
 
 
 def parse_organizations(raw_organizations: str | None) -> list[str]:
