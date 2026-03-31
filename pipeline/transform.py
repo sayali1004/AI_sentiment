@@ -90,6 +90,13 @@ _REGEX_COMPANIES = {
     ),
 }
 
+# Data center keywords — articles matching any of these get tagged "data_center"
+_DATA_CENTER_KEYWORDS = [
+    "data center", "data centre", "hyperscale", "server farm",
+    "colocation", "gpu cluster", "ai infrastructure",
+    "liquid cooling", "coreweave", "oracle cloud",
+]
+
 # Product name → parent company mapping
 _PRODUCT_TO_COMPANY = {
     "claude":            "anthropic",
@@ -132,6 +139,9 @@ def parse_mentioned_companies(extras: str | None, url: str | None) -> list[str]:
     for product, company in _PRODUCT_TO_COMPANY.items():
         if product in text:
             found.add(company)
+
+    if any(kw in text for kw in _DATA_CENTER_KEYWORDS):
+        found.add("data_center")
 
     return list(found)
 

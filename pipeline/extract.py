@@ -55,6 +55,17 @@ WHERE _PARTITIONTIME BETWEEN TIMESTAMP(@start_date) AND TIMESTAMP(@end_date)
     -- Image / art models
     OR LOWER(Extras) LIKE '%stable diffusion%'
     OR LOWER(Extras) LIKE '%midjourney%'
+    -- Data centers & AI infrastructure
+    OR LOWER(Extras) LIKE '%data center%'
+    OR LOWER(Extras) LIKE '%data centre%'
+    OR LOWER(Extras) LIKE '%hyperscale%'
+    OR LOWER(Extras) LIKE '%server farm%'
+    OR LOWER(Extras) LIKE '%colocation%'
+    OR LOWER(Extras) LIKE '%gpu cluster%'
+    OR LOWER(Extras) LIKE '%ai infrastructure%'
+    OR LOWER(Extras) LIKE '%liquid cooling%'
+    OR LOWER(Extras) LIKE '%coreweave%'
+    OR LOWER(Extras) LIKE '%oracle cloud%'
   )
 """
 
