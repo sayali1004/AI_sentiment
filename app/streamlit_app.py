@@ -1387,6 +1387,7 @@ Rules:
     # ------------------------------------------------------------------
 
     def _run_chatbot(user_message: str) -> str:
+        from groq import RateLimitError
         groq_client = get_groq_client()
 
         messages = [{"role": "system", "content": _SYSTEM_PROMPT}]
@@ -1394,9 +1395,10 @@ Rules:
             messages.append(m)
         messages.append({"role": "user", "content": user_message})
 
-        for _ in range(6):
+        try:
+          for _ in range(6):
             response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="llama-3.1-8b-instant",
                 messages=messages,
                 tools=CHAT_TOOLS,
                 tool_choice="auto",
@@ -1428,7 +1430,16 @@ Rules:
                     "content": result,
                 })
 
-        return "Reached the maximum number of steps. Please try a more specific question."
+          return "Reached the maximum number of steps. Please try a more specific question."
+        except RateLimitError as e:
+            msg = str(e)
+            import re
+            wait = re.search(r"try again in (\d+m[\d.]+s)", msg)
+            wait_str = wait.group(1) if wait else "a few minutes"
+            return (
+                f"Groq rate limit reached (free tier: 500k tokens/day). "
+                f"Please try again in {wait_str}."
+            )
 
     # ------------------------------------------------------------------
     # Chat UI
