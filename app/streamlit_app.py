@@ -11,7 +11,55 @@ import pandas as pd
 from datetime import date, timedelta
 from supabase import create_client
 
-st.set_page_config(page_title="AI Sentiment Dashboard", layout="wide")
+st.set_page_config(page_title="AI Sentiment Dashboard", layout="wide", page_icon="🌍")
+
+st.markdown("""
+<style>
+/* Gradient page header */
+.block-container h1 {
+    background: linear-gradient(90deg, #6366F1, #8B5CF6, #EC4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+/* Subtle gradient accent on tab headers */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 4px;
+    background: #F1F5F9;
+    border-radius: 12px;
+    padding: 4px;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-weight: 500;
+}
+.stTabs [aria-selected="true"] {
+    background: white !important;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.15);
+}
+
+/* Metric cards — soft indigo left border */
+[data-testid="stMetric"] {
+    background: white;
+    border-left: 4px solid #6366F1;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Sidebar background */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #EEF2FF 0%, #F8FAFF 100%);
+}
+
+/* Dividers — indigo tint */
+hr {
+    border-color: #C7D2FE !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------

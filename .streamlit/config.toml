@@ -1,0 +1,6 @@
+[theme]
+primaryColor        = "#6366F1"      # indigo — buttons, sliders, active elements
+backgroundColor     = "#FAFBFF"      # near-white with a faint blue tint
+secondaryBackgroundColor = "#F1F5F9" # light slate — sidebar, cards, expanders
+textColor           = "#1E293B"      # dark slate — readable, not harsh black
+font                = "sans serif"
