@@ -1,0 +1,10 @@
+google-cloud-bigquery
+db-dtypes
+pandas
+supabase
+streamlit
+plotly
+python-dotenv
+pytest
+groq
+sentence-transformers
