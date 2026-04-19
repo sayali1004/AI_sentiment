@@ -310,7 +310,8 @@ st.title("AI Sentiment Dashboard")
 # Tabs
 # ------------------------------------------------------------------
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "ℹ️ About",
     "🌍 Worldwide",
     "🇺🇸 US",
     "🏈 Super Bowl",
@@ -318,6 +319,181 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🔍 Topic Deep Dive",
     "💬 Ask the Data",
 ])
+
+
+# ==================================================================
+# TAB 0 — About
+# ==================================================================
+
+with tab0:
+
+    st.markdown("## AI Sentiment Heatmap")
+    st.markdown("##### *Tracking how the world feels about AI — one headline at a time.*")
+    st.divider()
+
+    # ---- Why this project ----
+    col_why, col_what = st.columns(2)
+
+    with col_why:
+        st.markdown("### Why")
+        st.markdown(
+            """
+            Investors, analysts, and researchers with a stake in the AI industry
+            lack a clear, real-time view of how global media sentiment toward AI is shifting.
+
+            Existing tools don't make it easy to spot **geographic or temporal patterns**
+            that could signal inflection points — like the *"AI bubble"* deflating,
+            a regulatory crackdown, or a breakthrough moment driving positive coverage.
+            """
+        )
+
+    with col_what:
+        st.markdown("### What")
+        st.markdown(
+            """
+            An open-source web dashboard that visualises **global news sentiment about AI**
+            using data from the [GDELT Project](https://www.gdeltproject.org/) —
+            one of the largest open databases of world news events.
+
+            It combines GDELT's built-in tone scores with a **RAG-powered chatbot**
+            that lets you ask natural language questions directly about the data.
+            """
+        )
+
+    st.divider()
+
+    # ---- Goals & objectives ----
+    st.markdown("### Goals & Objectives")
+    g1, g2, g3 = st.columns(3)
+    with g1:
+        st.markdown(
+            """
+            **Track AI Sentiment**
+            Monitor how global media coverage of AI shifts over time across countries,
+            companies, and themes.
+            """
+        )
+    with g2:
+        st.markdown(
+            """
+            **Surface Patterns Early**
+            Identify geographic and temporal signals — spikes, drops, regional divergence —
+            before they become mainstream narratives.
+            """
+        )
+    with g3:
+        st.markdown(
+            """
+            **Enable Natural Language Queries**
+            Let users ask plain-English questions about the data instead of writing SQL
+            or interpreting raw charts.
+            """
+        )
+
+    st.divider()
+
+    # ---- Key features ----
+    st.markdown("### Key Features")
+    f1, f2, f3, f4 = st.columns(4)
+    with f1:
+        st.markdown("**🌍 World Heatmap**\nCountry-level sentiment map with date range filter")
+    with f2:
+        st.markdown("**🇺🇸 US State Map**\nState-level breakdown of AI news sentiment")
+    with f3:
+        st.markdown("**📈 Trend Analysis**\nDaily sentiment and volume timeseries by company")
+    with f4:
+        st.markdown("**💬 RAG Chatbot**\nAsk questions — answered with real data from the DB")
+
+    st.divider()
+
+    # ---- Use cases ----
+    st.markdown("### Use Cases")
+    st.markdown(
+        """
+        | Who | How they use it |
+        |---|---|
+        | **Investors** | Monitor AI sentiment shifts as a signal for sector exposure |
+        | **Analysts** | Compare coverage of AI companies across regions and time |
+        | **Journalists** | Spot emerging narratives in AI news before they peak |
+        | **Researchers** | Study how public media frames AI risk, progress, and policy |
+        | **Students** | Explore real-world data engineering and NLP pipelines |
+        """
+    )
+
+    st.divider()
+
+    # ---- Tech stack ----
+    st.markdown("### Tech Stack")
+    st.markdown(
+        """
+        | Layer | Technology |
+        |---|---|
+        | News Data | GDELT Project via Google BigQuery |
+        | Pipeline | Python · pandas · GitHub Actions (daily cron) |
+        | Database | Supabase (PostgreSQL + pgvector) |
+        | Embeddings | all-MiniLM-L6-v2 (384-dim, sentence-transformers) |
+        | LLM | Llama 3.3 70B / 3.1 8B via Groq API |
+        | Dashboard | Streamlit · Plotly |
+        """
+    )
+
+    st.divider()
+
+    # ---- Team ----
+    st.markdown("### Team")
+
+    CARD_STYLE = """
+        <div style="
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            background: #fafafa;
+            height: 100%;
+        ">
+            <div style="
+                width: 100px; height: 100px;
+                border-radius: 50%;
+                background: #e0e0e0;
+                margin: 0 auto 16px auto;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 36px; color: #aaa;
+            ">📷</div>
+            <h4 style="margin: 0 0 4px 0;">{name}</h4>
+            <a href="{github}" target="_blank" style="font-size: 13px; color: #555;">
+                GitHub →
+            </a>
+            <p style="font-size: 13px; color: #666; margin-top: 12px;">{bio}</p>
+        </div>
+    """
+
+    LOREM = (
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+        "Ut enim ad minim veniam, quis nostrud exercitation."
+    )
+
+    team_col1, team_col2 = st.columns(2)
+
+    with team_col1:
+        st.markdown(
+            CARD_STYLE.format(
+                name="Jet Van Genuchten",
+                github="https://github.com/HenriettePlane",
+                bio=LOREM,
+            ),
+            unsafe_allow_html=True,
+        )
+
+    with team_col2:
+        st.markdown(
+            CARD_STYLE.format(
+                name="Sayali Shelke",
+                github="https://github.com/sayali1004",
+                bio=LOREM,
+            ),
+            unsafe_allow_html=True,
+        )
 
 
 # ==================================================================
@@ -1388,58 +1564,50 @@ Rules:
 
     def _run_chatbot(user_message: str) -> str:
         from groq import RateLimitError
+        import re
         groq_client = get_groq_client()
 
-        messages = [{"role": "system", "content": _SYSTEM_PROMPT}]
-        for m in st.session_state.chat_messages:
-            messages.append(m)
-        messages.append({"role": "user", "content": user_message})
+        base_messages = [{"role": "system", "content": _SYSTEM_PROMPT}]
+        base_messages.extend(st.session_state.chat_messages)
+        base_messages.append({"role": "user", "content": user_message})
 
-        try:
-          for _ in range(6):
-            response = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=messages,
-                tools=CHAT_TOOLS,
-                tool_choice="auto",
-                temperature=0.2,
-            )
-            choice = response.choices[0]
+        def _call_model(model: str) -> str:
+            msgs = base_messages.copy()
+            for _ in range(6):
+                response = groq_client.chat.completions.create(
+                    model=model,
+                    messages=msgs,
+                    tools=CHAT_TOOLS,
+                    tool_choice="auto",
+                    temperature=0.2,
+                )
+                choice = response.choices[0]
+                assistant_msg: dict = {"role": "assistant", "content": choice.message.content or ""}
+                if choice.message.tool_calls:
+                    assistant_msg["tool_calls"] = [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                        }
+                        for tc in choice.message.tool_calls
+                    ]
+                msgs.append(assistant_msg)
+                if choice.finish_reason != "tool_calls":
+                    return choice.message.content or "No response generated."
+                for tc in choice.message.tool_calls:
+                    tool_args = json.loads(tc.function.arguments)
+                    result = _execute_tool(tc.function.name, tool_args)
+                    msgs.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+            return "Reached the maximum number of steps. Please try a more specific question."
 
-            assistant_msg: dict = {"role": "assistant", "content": choice.message.content or ""}
-            if choice.message.tool_calls:
-                assistant_msg["tool_calls"] = [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
-                    }
-                    for tc in choice.message.tool_calls
-                ]
-            messages.append(assistant_msg)
+        for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+            try:
+                return _call_model(model)
+            except RateLimitError:
+                continue
 
-            if choice.finish_reason != "tool_calls":
-                return choice.message.content or "No response generated."
-
-            for tc in choice.message.tool_calls:
-                tool_args = json.loads(tc.function.arguments)
-                result = _execute_tool(tc.function.name, tool_args)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": result,
-                })
-
-          return "Reached the maximum number of steps. Please try a more specific question."
-        except RateLimitError as e:
-            msg = str(e)
-            import re
-            wait = re.search(r"try again in (\d+m[\d.]+s)", msg)
-            wait_str = wait.group(1) if wait else "a few minutes"
-            return (
-                f"Groq rate limit reached (free tier: 500k tokens/day). "
-                f"Please try again in {wait_str}."
-            )
+        return "Both Groq models are rate limited. Please try again in a few minutes."
 
     # ------------------------------------------------------------------
     # Chat UI
