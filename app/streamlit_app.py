@@ -17,7 +17,7 @@ st.markdown("""
 <style>
 /* Gradient page header */
 .block-container h1 {
-    background: linear-gradient(90deg, #6366F1, #8B5CF6, #EC4899);
+    background: linear-gradient(90deg, #E11D48, #FB7185, #FBBF24);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 800;
@@ -26,7 +26,7 @@ st.markdown("""
 /* Subtle gradient accent on tab headers */
 .stTabs [data-baseweb="tab-list"] {
     gap: 4px;
-    background: #F1F5F9;
+    background: #FFF0EE;
     border-radius: 12px;
     padding: 4px;
 }
@@ -37,13 +37,13 @@ st.markdown("""
 }
 .stTabs [aria-selected="true"] {
     background: white !important;
-    box-shadow: 0 1px 4px rgba(99,102,241,0.15);
+    box-shadow: 0 1px 4px rgba(225,29,72,0.15);
 }
 
-/* Metric cards — soft indigo left border */
+/* Metric cards — soft rose left border */
 [data-testid="stMetric"] {
     background: white;
-    border-left: 4px solid #6366F1;
+    border-left: 4px solid #E11D48;
     border-radius: 8px;
     padding: 12px 16px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
@@ -51,12 +51,12 @@ st.markdown("""
 
 /* Sidebar background */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #EEF2FF 0%, #F8FAFF 100%);
+    background: linear-gradient(180deg, #FFE4E6 0%, #FFF8F7 100%);
 }
 
-/* Dividers — indigo tint */
+/* Dividers — rose tint */
 hr {
-    border-color: #C7D2FE !important;
+    border-color: #FECDD3 !important;
 }
 </style>
 """, unsafe_allow_html=True)
