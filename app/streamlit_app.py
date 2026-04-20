@@ -8,6 +8,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import pycountry
 from datetime import date, timedelta
 from supabase import create_client
 
@@ -260,6 +261,14 @@ SENTIMENT_COLOR_SCALE = [
     [1.0,  "#006837"],
 ]
 
+def _fips_to_name(fips: str) -> str:
+    iso3 = FIPS_TO_ISO3.get(fips)
+    if iso3:
+        country = pycountry.countries.get(alpha_3=iso3)
+        if country:
+            return country.name
+    return fips
+
 ALL_ORGS = [
     "anthropic", "openai", "google", "microsoft", "meta", "nvidia",
     "amazon", "apple", "xai", "mistral", "deepseek",
@@ -291,14 +300,6 @@ if start_date > end_date:
     st.sidebar.error("Start date must be before end date.")
     st.stop()
 
-selected_orgs = st.sidebar.multiselect(
-    "Companies",
-    options=ALL_ORGS,
-    default=["anthropic", "openai", "google"],
-    format_func=lambda x: x.replace("_", " ").title(),
-)
-
-st.sidebar.caption("Company filter applies to Tabs 1, 2, and 4.")
 
 # ------------------------------------------------------------------
 # Title
@@ -310,11 +311,12 @@ st.title("AI Sentiment Dashboard")
 # Tabs
 # ------------------------------------------------------------------
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🌍 Worldwide",
     "🇺🇸 US",
     "🏈 Super Bowl",
     "🏗️ Data Centers",
+    "🏢 Company Comparison",
     "🔍 Topic Deep Dive",
 ])
 
@@ -349,21 +351,40 @@ with tab1:
         else:
             df_world["articles_per_million"] = None
 
+        # ---- Country filter ----
+        country_options = sorted(df_world["country_code"].dropna().unique().tolist(), key=_fips_to_name)
+        selected_countries = st.multiselect(
+            "Filter by country",
+            options=country_options,
+            default=[],
+            format_func=_fips_to_name,
+            key="world_country_filter",
+        )
+        df_world_filtered = (
+            df_world if not selected_countries
+            else df_world[df_world["country_code"].isin(selected_countries)]
+        )
+
         # ---- KPI row ----
-        total_articles = int(df_world["article_count"].sum())
-        countries_covered = int(df_world["country_code"].nunique())
-        global_avg_tone = float(df_world["avg_tone"].mean())
+        total_articles = int(df_world_filtered["article_count"].sum())
+        countries_covered = int(df_world_filtered["country_code"].nunique())
+        avg_tone = float(df_world_filtered["avg_tone"].mean()) if not df_world_filtered.empty else 0.0
 
         kpi1, kpi2, kpi3 = st.columns(3)
         kpi1.metric("Total Articles", f"{total_articles:,}")
         kpi2.metric("Countries Covered", countries_covered)
-        kpi3.metric("Global Avg Tone", f"{global_avg_tone:.2f}")
+        kpi3.metric("Avg Tone", f"{avg_tone:.2f}")
 
         st.divider()
 
         # ---- Section: Overall Trends ----
         st.subheader("Overall Trends")
-        df_ts_all, err_ts_all = fetch_sentiment_timeseries(start_date.isoformat(), end_date.isoformat())
+        if len(selected_countries) == 1:
+            df_ts_all, err_ts_all = fetch_sentiment_timeseries_by_country(
+                start_date.isoformat(), end_date.isoformat(), selected_countries[0]
+            )
+        else:
+            df_ts_all, err_ts_all = fetch_sentiment_timeseries(start_date.isoformat(), end_date.isoformat())
         if err_ts_all:
             st.warning(f"Error loading timeseries data: {err_ts_all}")
 
@@ -400,66 +421,6 @@ with tab1:
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
                 st.plotly_chart(fig_tone, use_container_width=True)
-
-        st.divider()
-
-        # ---- Section: By Company ----
-        st.subheader("By Company")
-
-        if not selected_orgs:
-            st.info("Select at least one company in the sidebar to see per-company trends.")
-        else:
-            df_ts_org, err_ts_org = fetch_timeseries_per_org(
-                start_date.isoformat(), end_date.isoformat(), selected_orgs
-            )
-            if err_ts_org:
-                st.warning(f"Error loading per-company timeseries data: {err_ts_org}")
-
-            if df_ts_org.empty:
-                st.info("No per-company timeseries data available for the selected range and companies.")
-            else:
-                df_ts_org["org_name_display"] = df_ts_org["org_name"].str.replace("_", " ").str.title()
-
-                col_left, col_right = st.columns(2)
-
-                with col_left:
-                    fig_org_vol = px.line(
-                        df_ts_org,
-                        x="date",
-                        y="article_count",
-                        color="org_name_display",
-                        title="Daily Volume by Company",
-                        labels={
-                            "date": "Date",
-                            "article_count": "Article Count",
-                            "org_name_display": "Company",
-                        },
-                    )
-                    fig_org_vol.update_layout(
-                        hovermode="x unified",
-                        margin=dict(l=0, r=0, t=40, b=0),
-                    )
-                    st.plotly_chart(fig_org_vol, use_container_width=True)
-
-                with col_right:
-                    fig_org_tone = px.line(
-                        df_ts_org,
-                        x="date",
-                        y="avg_tone",
-                        color="org_name_display",
-                        title="Daily Sentiment by Company",
-                        labels={
-                            "date": "Date",
-                            "avg_tone": "Avg Tone",
-                            "org_name_display": "Company",
-                        },
-                    )
-                    fig_org_tone.add_hline(y=0, line_dash="dot", line_color="gray")
-                    fig_org_tone.update_layout(
-                        hovermode="x unified",
-                        margin=dict(l=0, r=0, t=40, b=0),
-                    )
-                    st.plotly_chart(fig_org_tone, use_container_width=True)
 
         st.divider()
 
@@ -627,68 +588,6 @@ with tab2:
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
                 st.plotly_chart(fig_us_tone, use_container_width=True)
-
-        st.divider()
-
-        # ---- Section: By Company (US) ----
-        st.subheader("By Company (US)")
-
-        if not selected_orgs:
-            st.info("Select at least one company in the sidebar to see per-company trends.")
-        else:
-            df_us_org_ts, err_us_org_ts = fetch_timeseries_per_org_by_country(
-                start_date.isoformat(), end_date.isoformat(), "US", selected_orgs
-            )
-            if err_us_org_ts:
-                st.warning(f"Error loading US per-company timeseries data: {err_us_org_ts}")
-
-            if df_us_org_ts.empty:
-                st.info("No per-company US timeseries data available for the selected range and companies.")
-            else:
-                df_us_org_ts["org_name_display"] = (
-                    df_us_org_ts["org_name"].str.replace("_", " ").str.title()
-                )
-
-                col_left, col_right = st.columns(2)
-
-                with col_left:
-                    fig_us_org_vol = px.line(
-                        df_us_org_ts,
-                        x="date",
-                        y="article_count",
-                        color="org_name_display",
-                        title="Daily Volume by Company (US)",
-                        labels={
-                            "date": "Date",
-                            "article_count": "Article Count",
-                            "org_name_display": "Company",
-                        },
-                    )
-                    fig_us_org_vol.update_layout(
-                        hovermode="x unified",
-                        margin=dict(l=0, r=0, t=40, b=0),
-                    )
-                    st.plotly_chart(fig_us_org_vol, use_container_width=True)
-
-                with col_right:
-                    fig_us_org_tone = px.line(
-                        df_us_org_ts,
-                        x="date",
-                        y="avg_tone",
-                        color="org_name_display",
-                        title="Daily Sentiment by Company (US)",
-                        labels={
-                            "date": "Date",
-                            "avg_tone": "Avg Tone",
-                            "org_name_display": "Company",
-                        },
-                    )
-                    fig_us_org_tone.add_hline(y=0, line_dash="dot", line_color="gray")
-                    fig_us_org_tone.update_layout(
-                        hovermode="x unified",
-                        margin=dict(l=0, r=0, t=40, b=0),
-                    )
-                    st.plotly_chart(fig_us_org_tone, use_container_width=True)
 
         st.divider()
 
@@ -1055,10 +954,188 @@ with tab4:
 
 
 # ==================================================================
-# TAB 5 — Topic Deep Dive
+# TAB 5 — Company Comparison
 # ==================================================================
 
 with tab5:
+    st.header("Company Comparison")
+    st.caption(f"Showing data from {start_date} to {end_date}")
+
+    comp_selected_orgs = st.multiselect(
+        "Companies",
+        options=ALL_ORGS,
+        default=["anthropic", "openai", "google"],
+        format_func=lambda x: x.replace("_", " ").title(),
+        key="comp_orgs",
+    )
+
+    if not comp_selected_orgs:
+        st.info("Select at least one company to see comparison charts.")
+    else:
+        # ---- Section: Summary Table ----
+        st.subheader("Average Sentiment Summary")
+
+        df_org_summary, err_org_summary = fetch_sentiment_by_org(
+            start_date.isoformat(), end_date.isoformat(), comp_selected_orgs
+        )
+        df_us_summary, err_us_summary = fetch_timeseries_per_org_by_country(
+            start_date.isoformat(), end_date.isoformat(), "US", comp_selected_orgs
+        )
+
+        if err_org_summary:
+            st.warning(f"Error loading worldwide summary: {err_org_summary}")
+        if err_us_summary:
+            st.warning(f"Error loading US summary: {err_us_summary}")
+
+        if not df_org_summary.empty:
+            summary = df_org_summary[["org_name", "avg_tone", "article_count"]].copy()
+            summary.columns = ["org_name", "Worldwide Avg Tone", "Worldwide Articles"]
+
+            if not df_us_summary.empty:
+                us_agg = (
+                    df_us_summary.groupby("org_name")
+                    .agg(us_avg_tone=("avg_tone", "mean"), us_articles=("article_count", "sum"))
+                    .reset_index()
+                )
+                summary = summary.merge(us_agg, on="org_name", how="left")
+                summary.rename(columns={"us_avg_tone": "US Avg Tone", "us_articles": "US Articles"}, inplace=True)
+            else:
+                summary["US Avg Tone"] = None
+                summary["US Articles"] = None
+
+            summary["Company"] = summary["org_name"].str.replace("_", " ").str.title()
+            summary = summary.drop(columns=["org_name"]).set_index("Company")
+            summary["Worldwide Avg Tone"] = summary["Worldwide Avg Tone"].round(2)
+            summary["Worldwide Articles"] = summary["Worldwide Articles"].astype(int)
+            if "US Avg Tone" in summary.columns:
+                summary["US Avg Tone"] = summary["US Avg Tone"].round(2)
+                summary["US Articles"] = summary["US Articles"].fillna(0).astype(int)
+            summary = summary.sort_values("Worldwide Avg Tone", ascending=False)
+
+            st.dataframe(summary, use_container_width=True)
+
+        st.divider()
+
+        # ---- Section: Worldwide by Company ----
+        st.subheader("Worldwide")
+
+        df_ts_org, err_ts_org = fetch_timeseries_per_org(
+            start_date.isoformat(), end_date.isoformat(), comp_selected_orgs
+        )
+        if err_ts_org:
+            st.warning(f"Error loading per-company timeseries data: {err_ts_org}")
+
+        if df_ts_org.empty:
+            st.info("No per-company timeseries data available for the selected range and companies.")
+        else:
+            df_ts_org["org_name_display"] = df_ts_org["org_name"].str.replace("_", " ").str.title()
+
+            col_left, col_right = st.columns(2)
+
+            with col_left:
+                fig_org_vol = px.line(
+                    df_ts_org,
+                    x="date",
+                    y="article_count",
+                    color="org_name_display",
+                    title="Daily Volume by Company",
+                    labels={
+                        "date": "Date",
+                        "article_count": "Article Count",
+                        "org_name_display": "Company",
+                    },
+                )
+                fig_org_vol.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_org_vol, use_container_width=True)
+
+            with col_right:
+                fig_org_tone = px.line(
+                    df_ts_org,
+                    x="date",
+                    y="avg_tone",
+                    color="org_name_display",
+                    title="Daily Sentiment by Company",
+                    labels={
+                        "date": "Date",
+                        "avg_tone": "Avg Tone",
+                        "org_name_display": "Company",
+                    },
+                )
+                fig_org_tone.add_hline(y=0, line_dash="dot", line_color="gray")
+                fig_org_tone.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_org_tone, use_container_width=True)
+
+        st.divider()
+
+        # ---- Section: US by Company ----
+        st.subheader("US")
+
+        df_us_org_ts, err_us_org_ts = fetch_timeseries_per_org_by_country(
+            start_date.isoformat(), end_date.isoformat(), "US", comp_selected_orgs
+        )
+        if err_us_org_ts:
+            st.warning(f"Error loading US per-company timeseries data: {err_us_org_ts}")
+
+        if df_us_org_ts.empty:
+            st.info("No per-company US timeseries data available for the selected range and companies.")
+        else:
+            df_us_org_ts["org_name_display"] = (
+                df_us_org_ts["org_name"].str.replace("_", " ").str.title()
+            )
+
+            col_left, col_right = st.columns(2)
+
+            with col_left:
+                fig_us_org_vol = px.line(
+                    df_us_org_ts,
+                    x="date",
+                    y="article_count",
+                    color="org_name_display",
+                    title="Daily Volume by Company (US)",
+                    labels={
+                        "date": "Date",
+                        "article_count": "Article Count",
+                        "org_name_display": "Company",
+                    },
+                )
+                fig_us_org_vol.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_us_org_vol, use_container_width=True)
+
+            with col_right:
+                fig_us_org_tone = px.line(
+                    df_us_org_ts,
+                    x="date",
+                    y="avg_tone",
+                    color="org_name_display",
+                    title="Daily Sentiment by Company (US)",
+                    labels={
+                        "date": "Date",
+                        "avg_tone": "Avg Tone",
+                        "org_name_display": "Company",
+                    },
+                )
+                fig_us_org_tone.add_hline(y=0, line_dash="dot", line_color="gray")
+                fig_us_org_tone.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_us_org_tone, use_container_width=True)
+
+
+# ==================================================================
+# TAB 6 — Topic Deep Dive
+# ==================================================================
+
+with tab6:
     st.header("Topic Deep Dive")
 
     st.info("Phase 2 feature: Topic-level drill-down into headline themes. Coming soon.")

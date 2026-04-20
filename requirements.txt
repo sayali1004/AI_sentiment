@@ -6,3 +6,4 @@ streamlit
 plotly
 python-dotenv
 pytest
+pycountry
