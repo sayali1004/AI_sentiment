@@ -12,7 +12,55 @@ import pycountry
 from datetime import date, timedelta
 from supabase import create_client
 
-st.set_page_config(page_title="AI Sentiment Dashboard", layout="wide")
+st.set_page_config(page_title="AI Sentiment Dashboard", layout="wide", page_icon="🌍")
+
+st.markdown("""
+<style>
+/* Gradient page header */
+.block-container h1 {
+    background: linear-gradient(90deg, #E11D48, #FB7185, #FBBF24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+/* Subtle gradient accent on tab headers */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 4px;
+    background: #FFF0EE;
+    border-radius: 12px;
+    padding: 4px;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-weight: 500;
+}
+.stTabs [aria-selected="true"] {
+    background: white !important;
+    box-shadow: 0 1px 4px rgba(225,29,72,0.15);
+}
+
+/* Metric cards — soft rose left border */
+[data-testid="stMetric"] {
+    background: white;
+    border-left: 4px solid #E11D48;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Sidebar background */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #FFE4E6 0%, #FFF8F7 100%);
+}
+
+/* Dividers — rose tint */
+hr {
+    border-color: #FECDD3 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------
@@ -311,14 +359,191 @@ st.title("AI Sentiment Dashboard")
 # Tabs
 # ------------------------------------------------------------------
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    "ℹ️ About",
     "🌍 Worldwide",
     "🇺🇸 US",
     "🏈 Super Bowl",
     "🏗️ Data Centers",
     "🏢 Company Comparison",
     "🔍 Topic Deep Dive",
+    "💬 Ask the Data",
 ])
+
+
+# ==================================================================
+# TAB 0 — About
+# ==================================================================
+
+with tab0:
+
+    st.markdown("## AI Sentiment Heatmap")
+    st.markdown("##### *Tracking how the world feels about AI — one headline at a time.*")
+    st.divider()
+
+    # ---- Why this project ----
+    col_why, col_what = st.columns(2)
+
+    with col_why:
+        st.markdown("### Why")
+        st.markdown(
+            """
+            Investors, analysts, and researchers with a stake in the AI industry
+            lack a clear, real-time view of how global media sentiment toward AI is shifting.
+
+            Existing tools don't make it easy to spot **geographic or temporal patterns**
+            that could signal inflection points — like the *"AI bubble"* deflating,
+            a regulatory crackdown, or a breakthrough moment driving positive coverage.
+            """
+        )
+
+    with col_what:
+        st.markdown("### What")
+        st.markdown(
+            """
+            An open-source web dashboard that visualises **global news sentiment about AI**
+            using data from the [GDELT Project](https://www.gdeltproject.org/) —
+            one of the largest open databases of world news events.
+
+            It combines GDELT's built-in tone scores with a **RAG-powered chatbot**
+            that lets you ask natural language questions directly about the data.
+            """
+        )
+
+    st.divider()
+
+    # ---- Goals & objectives ----
+    st.markdown("### Goals & Objectives")
+    g1, g2, g3 = st.columns(3)
+    with g1:
+        st.markdown(
+            """
+            **Track AI Sentiment**
+            Monitor how global media coverage of AI shifts over time across countries,
+            companies, and themes.
+            """
+        )
+    with g2:
+        st.markdown(
+            """
+            **Surface Patterns Early**
+            Identify geographic and temporal signals — spikes, drops, regional divergence —
+            before they become mainstream narratives.
+            """
+        )
+    with g3:
+        st.markdown(
+            """
+            **Enable Natural Language Queries**
+            Let users ask plain-English questions about the data instead of writing SQL
+            or interpreting raw charts.
+            """
+        )
+
+    st.divider()
+
+    # ---- Key features ----
+    st.markdown("### Key Features")
+    f1, f2, f3, f4 = st.columns(4)
+    with f1:
+        st.markdown("**🌍 World Heatmap**\nCountry-level sentiment map with date range filter")
+    with f2:
+        st.markdown("**🇺🇸 US State Map**\nState-level breakdown of AI news sentiment")
+    with f3:
+        st.markdown("**📈 Trend Analysis**\nDaily sentiment and volume timeseries by company")
+    with f4:
+        st.markdown("**💬 RAG Chatbot**\nAsk questions — answered with real data from the DB")
+
+    st.divider()
+
+    # ---- Use cases ----
+    st.markdown("### Use Cases")
+    st.markdown(
+        """
+        | Who | How they use it |
+        |---|---|
+        | **Investors** | Monitor AI sentiment shifts as a signal for sector exposure |
+        | **Analysts** | Compare coverage of AI companies across regions and time |
+        | **Journalists** | Spot emerging narratives in AI news before they peak |
+        | **Researchers** | Study how public media frames AI risk, progress, and policy |
+        | **Students** | Explore real-world data engineering and NLP pipelines |
+        """
+    )
+
+    st.divider()
+
+    # ---- Tech stack ----
+    st.markdown("### Tech Stack")
+    st.markdown(
+        """
+        | Layer | Technology |
+        |---|---|
+        | News Data | GDELT Project via Google BigQuery |
+        | Pipeline | Python · pandas · GitHub Actions (daily cron) |
+        | Database | Supabase (PostgreSQL + pgvector) |
+        | Embeddings | all-MiniLM-L6-v2 (384-dim, sentence-transformers) |
+        | LLM | Llama 3.3 70B / 3.1 8B via Groq API |
+        | Dashboard | Streamlit · Plotly |
+        """
+    )
+
+    st.divider()
+
+    # ---- Team ----
+    st.markdown("### Team")
+
+    CARD_STYLE = """
+        <div style="
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            background: #fafafa;
+            height: 100%;
+        ">
+            <div style="
+                width: 100px; height: 100px;
+                border-radius: 50%;
+                background: #e0e0e0;
+                margin: 0 auto 16px auto;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 36px; color: #aaa;
+            ">📷</div>
+            <h4 style="margin: 0 0 4px 0;">{name}</h4>
+            <a href="{github}" target="_blank" style="font-size: 13px; color: #555;">
+                GitHub →
+            </a>
+            <p style="font-size: 13px; color: #666; margin-top: 12px;">{bio}</p>
+        </div>
+    """
+
+    LOREM = (
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+        "Ut enim ad minim veniam, quis nostrud exercitation."
+    )
+
+    team_col1, team_col2 = st.columns(2)
+
+    with team_col1:
+        st.markdown(
+            CARD_STYLE.format(
+                name="Jet Van Genuchten",
+                github="https://github.com/HenriettePlane",
+                bio=LOREM,
+            ),
+            unsafe_allow_html=True,
+        )
+
+    with team_col2:
+        st.markdown(
+            CARD_STYLE.format(
+                name="Sayali Shelke",
+                github="https://github.com/sayali1004",
+                bio=LOREM,
+            ),
+            unsafe_allow_html=True,
+        )
 
 
 # ==================================================================
@@ -1139,3 +1364,428 @@ with tab6:
     st.header("Topic Deep Dive")
 
     st.info("Phase 2 feature: Topic-level drill-down into headline themes. Coming soon.")
+
+
+# ==================================================================
+# TAB 7 — Ask the Data (RAG Chatbot)
+# ==================================================================
+
+with tab7:
+    import json
+    from groq import Groq
+
+    st.header("Ask the Data")
+    st.caption("Ask natural language questions about AI sentiment trends.")
+
+    @st.cache_resource
+    def get_groq_client():
+        return Groq(api_key=_get_setting("GROQ_API_KEY"))
+
+    # ------------------------------------------------------------------
+    # Tool definitions
+    # ------------------------------------------------------------------
+
+    CHAT_TOOLS = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_sentiment_by_country",
+                "description": (
+                    "Get average AI news sentiment and article count aggregated by country "
+                    "for a date range. Use this for geographic comparisons."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "start_date": {"type": "string", "description": "Start date YYYY-MM-DD"},
+                        "end_date":   {"type": "string", "description": "End date YYYY-MM-DD"},
+                    },
+                    "required": ["start_date", "end_date"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_sentiment_timeseries",
+                "description": (
+                    "Get daily AI sentiment and article volume over time. "
+                    "Use to spot trends, spikes, or drops. "
+                    "Optionally filter by specific companies."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "start_date": {"type": "string", "description": "Start date YYYY-MM-DD"},
+                        "end_date":   {"type": "string", "description": "End date YYYY-MM-DD"},
+                        "org_filter": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": (
+                                "Optional company filter. Valid values: anthropic, openai, "
+                                "google, microsoft, meta, nvidia, amazon, apple, xai, "
+                                "mistral, deepseek, anduril, palantir, department_of_defense, data_center"
+                            ),
+                        },
+                    },
+                    "required": ["start_date", "end_date"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_sentiment_by_org",
+                "description": (
+                    "Get average AI sentiment and article count per company for a date range. "
+                    "Use to compare companies or answer questions about a specific company."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "start_date": {"type": "string", "description": "Start date YYYY-MM-DD"},
+                        "end_date":   {"type": "string", "description": "End date YYYY-MM-DD"},
+                        "org_list": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": (
+                                "Companies to query. Valid values: anthropic, openai, "
+                                "google, microsoft, meta, nvidia, amazon, apple, xai, "
+                                "mistral, deepseek, anduril, palantir, department_of_defense"
+                            ),
+                        },
+                    },
+                    "required": ["start_date", "end_date", "org_list"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_recent_headlines",
+                "description": (
+                    "Fetch article headlines to understand what narratives are driving sentiment. "
+                    "Use for 'why' questions, 'summarize' questions, or to explain tone changes."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "start_date":   {"type": "string", "description": "Start date YYYY-MM-DD"},
+                        "end_date":     {"type": "string", "description": "End date YYYY-MM-DD"},
+                        "country_code": {
+                            "type": "string",
+                            "description": "Optional 2-letter FIPS country code (e.g. US, UK, CH)",
+                        },
+                        "org_filter": {
+                            "type": "string",
+                            "description": "Optional single org name to filter by (e.g. anthropic)",
+                        },
+                        "sort_by": {
+                            "type": "string",
+                            "enum": ["recent", "most_negative", "most_positive"],
+                            "description": "recent=newest first, most_negative/most_positive for tone analysis",
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "Max headlines to return (default 60, max 100)",
+                        },
+                    },
+                    "required": ["start_date", "end_date"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_sentiment_by_us_state",
+                "description": "Get average AI sentiment and article count by US state for a date range.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "start_date": {"type": "string", "description": "Start date YYYY-MM-DD"},
+                        "end_date":   {"type": "string", "description": "End date YYYY-MM-DD"},
+                    },
+                    "required": ["start_date", "end_date"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "semantic_search_articles",
+                "description": (
+                    "Find articles semantically similar to a topic or question using vector search. "
+                    "Best for open-ended questions: 'why', 'what is driving', 'summarize', "
+                    "'what are people saying about X'. Returns the most relevant headlines with tone scores."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The topic or question to search for semantically similar articles",
+                        },
+                        "start_date": {"type": "string", "description": "Start date YYYY-MM-DD"},
+                        "end_date":   {"type": "string", "description": "End date YYYY-MM-DD"},
+                        "country_code": {
+                            "type": "string",
+                            "description": "Optional 2-letter FIPS country code to restrict search (e.g. US)",
+                        },
+                        "org_filter": {
+                            "type": "string",
+                            "description": "Optional org name to restrict search (e.g. anthropic, openai)",
+                        },
+                        "match_count": {
+                            "type": "integer",
+                            "description": "Number of articles to return (default 30, max 60)",
+                        },
+                    },
+                    "required": ["query", "start_date", "end_date"],
+                },
+            },
+        },
+    ]
+
+    # ------------------------------------------------------------------
+    # Tool execution
+    # ------------------------------------------------------------------
+
+    def _execute_tool(tool_name: str, args: dict) -> str:
+        client = get_supabase_client()
+
+        if tool_name == "get_sentiment_by_country":
+            resp = client.rpc("get_sentiment_by_country", {
+                "start_date": args["start_date"],
+                "end_date":   args["end_date"],
+            }).execute()
+            if not resp.data:
+                return "No country data found for this period."
+            df = pd.DataFrame(resp.data).sort_values("article_count", ascending=False)
+            df["avg_tone"] = df["avg_tone"].round(2)
+            return f"Sentiment by country ({len(df)} countries):\n{df.to_string(index=False)}"
+
+        if tool_name == "get_sentiment_timeseries":
+            params = {"start_date": args["start_date"], "end_date": args["end_date"]}
+            if args.get("org_filter"):
+                params["org_filter"] = args["org_filter"]
+            resp = client.rpc("get_sentiment_timeseries", params).execute()
+            if not resp.data:
+                return "No timeseries data found for this period."
+            df = pd.DataFrame(resp.data)
+            df["avg_tone"] = df["avg_tone"].round(2)
+            return f"Daily sentiment ({len(df)} days):\n{df.to_string(index=False)}"
+
+        if tool_name == "get_sentiment_by_org":
+            resp = client.rpc("get_sentiment_by_org", {
+                "start_date": args["start_date"],
+                "end_date":   args["end_date"],
+                "org_list":   args["org_list"],
+            }).execute()
+            if not resp.data:
+                return "No organization data found for this period."
+            df = pd.DataFrame(resp.data).sort_values("avg_tone")
+            df["avg_tone"] = df["avg_tone"].round(2)
+            return f"Sentiment by company:\n{df.to_string(index=False)}"
+
+        if tool_name == "get_recent_headlines":
+            limit = min(args.get("limit", 60), 100)
+            sort_by = args.get("sort_by", "recent")
+
+            q = client.table("articles").select(
+                "title, source_name, published_date, avg_tone, mentioned_country_code, organizations"
+            ).gte("published_date", args["start_date"]).lte("published_date", args["end_date"])
+
+            if args.get("country_code"):
+                q = q.eq("mentioned_country_code", args["country_code"].upper().strip())
+            if args.get("org_filter"):
+                q = q.contains("organizations", [args["org_filter"]])
+
+            if sort_by == "most_negative":
+                q = q.order("avg_tone", desc=False)
+            elif sort_by == "most_positive":
+                q = q.order("avg_tone", desc=True)
+            else:
+                q = q.order("published_date", desc=True)
+
+            resp = q.limit(limit).execute()
+            if not resp.data:
+                return "No headlines found for this period."
+
+            df = pd.DataFrame(resp.data)
+            df = df[~df["title"].str.startswith("http", na=False)]
+            if df.empty:
+                return "No page titles available for this period (only URLs stored)."
+
+            lines = []
+            for _, row in df.iterrows():
+                tone = f"{row['avg_tone']:.1f}" if pd.notna(row.get("avg_tone")) else "N/A"
+                lines.append(f"[{row['published_date']}] (tone:{tone}) {row['title']}")
+            return f"Headlines ({len(lines)}):\n" + "\n".join(lines)
+
+        if tool_name == "get_sentiment_by_us_state":
+            resp = client.rpc("get_sentiment_by_us_state", {
+                "start_date": args["start_date"],
+                "end_date":   args["end_date"],
+            }).execute()
+            if not resp.data:
+                return "No US state data found for this period."
+            df = pd.DataFrame(resp.data).sort_values("article_count", ascending=False)
+            df["avg_tone"] = df["avg_tone"].round(2)
+            return f"US state sentiment ({len(df)} states):\n{df.to_string(index=False)}"
+
+        if tool_name == "semantic_search_articles":
+            from pipeline.embed import embed_texts
+            query_vec = embed_texts([args["query"]])[0]
+            params = {
+                "query_embedding": query_vec,
+                "match_count": min(args.get("match_count", 30), 60),
+                "filter_start_date": args["start_date"],
+                "filter_end_date": args["end_date"],
+            }
+            if args.get("country_code"):
+                params["filter_country"] = args["country_code"].upper().strip()
+            if args.get("org_filter"):
+                params["filter_org"] = args["org_filter"]
+            resp = client.rpc("match_articles", params).execute()
+            if not resp.data:
+                return "No semantically similar articles found. Embeddings may still be backfilling."
+            df = pd.DataFrame(resp.data)
+            lines = []
+            for _, row in df.iterrows():
+                tone = f"{row['avg_tone']:.1f}" if pd.notna(row.get("avg_tone")) else "N/A"
+                sim  = f"{row['similarity']:.2f}" if pd.notna(row.get("similarity")) else ""
+                lines.append(f"[{row['published_date']}] (tone:{tone} sim:{sim}) {row['title']}")
+            return f"Semantically relevant articles ({len(lines)}):\n" + "\n".join(lines)
+
+        return f"Unknown tool: {tool_name}"
+
+    # ------------------------------------------------------------------
+    # System prompt
+    # ------------------------------------------------------------------
+
+    _SYSTEM_PROMPT = f"""You are an AI sentiment analyst. You have access to a database of global \
+news articles about AI collected daily from GDELT (a real-time global news index). Each article \
+has a sentiment tone score (avg_tone): positive values = favorable coverage, negative = critical \
+or alarming coverage, near zero = neutral. Scores typically range from -10 to +10; above +2 is \
+noticeably positive, below -2 is noticeably negative.
+
+Today is {date.today().isoformat()}. Data covers the last 12 months.
+
+Available companies/tags: anthropic, openai, google, microsoft, meta, nvidia, amazon, apple, \
+xai, mistral, deepseek, anduril, palantir, department_of_defense, data_center.
+
+Rules:
+- Always call tools to get real data before answering — never guess numbers.
+- For "why", "what's driving", or "summarize" questions, prefer semantic_search_articles — it finds topically relevant articles even when exact keywords differ.
+- For trend questions, call get_sentiment_timeseries.
+- For date/country/org-filtered headline lists, use get_recent_headlines.
+- Default to last 30 days when the user doesn't specify a date range.
+- Be concise. Lead with the key finding, then supporting numbers.
+- When citing tone, always include the numeric value."""
+
+    # ------------------------------------------------------------------
+    # Chatbot runner
+    # ------------------------------------------------------------------
+
+    def _run_chatbot(user_message: str) -> str:
+        from groq import RateLimitError
+        import re
+        groq_client = get_groq_client()
+
+        base_messages = [{"role": "system", "content": _SYSTEM_PROMPT}]
+        base_messages.extend(st.session_state.chat_messages)
+        base_messages.append({"role": "user", "content": user_message})
+
+        def _call_model(model: str) -> str:
+            msgs = base_messages.copy()
+            for _ in range(6):
+                response = groq_client.chat.completions.create(
+                    model=model,
+                    messages=msgs,
+                    tools=CHAT_TOOLS,
+                    tool_choice="auto",
+                    temperature=0.2,
+                )
+                choice = response.choices[0]
+                assistant_msg: dict = {"role": "assistant", "content": choice.message.content or ""}
+                if choice.message.tool_calls:
+                    assistant_msg["tool_calls"] = [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                        }
+                        for tc in choice.message.tool_calls
+                    ]
+                msgs.append(assistant_msg)
+                if choice.finish_reason != "tool_calls":
+                    return choice.message.content or "No response generated."
+                for tc in choice.message.tool_calls:
+                    tool_args = json.loads(tc.function.arguments)
+                    result = _execute_tool(tc.function.name, tool_args)
+                    msgs.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+            return "Reached the maximum number of steps. Please try a more specific question."
+
+        for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+            try:
+                return _call_model(model)
+            except RateLimitError:
+                continue
+
+        return "Both Groq models are rate limited. Please try again in a few minutes."
+
+    # ------------------------------------------------------------------
+    # Chat UI
+    # ------------------------------------------------------------------
+
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []
+
+    # Suggested questions (shown only when chat is empty)
+    if not st.session_state.chat_messages:
+        st.markdown("**Try asking:**")
+        suggestions = [
+            "What is the sentiment toward AI in the US this month?",
+            "Which countries are most negative about AI recently?",
+            "Why did AI sentiment drop last week?",
+            "Compare Anthropic vs OpenAI sentiment in the last 30 days",
+            "Summarize the main AI narrative in global news over the last 30 days",
+        ]
+        cols = st.columns(1)
+        for s in suggestions:
+            if st.button(s, key=f"suggest_{hash(s)}"):
+                with st.chat_message("user"):
+                    st.write(s)
+                with st.chat_message("assistant"):
+                    with st.spinner("Querying data..."):
+                        reply = _run_chatbot(s)
+                    st.write(reply)
+                st.session_state.chat_messages.append({"role": "user", "content": s})
+                st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+                st.rerun()
+
+    # Render history
+    for m in st.session_state.chat_messages:
+        if m["role"] in ("user", "assistant"):
+            with st.chat_message(m["role"]):
+                st.write(m["content"])
+
+    # Input
+    if prompt := st.chat_input("Ask about AI sentiment trends..."):
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("assistant"):
+            with st.spinner("Querying data..."):
+                reply = _run_chatbot(prompt)
+            st.write(reply)
+        st.session_state.chat_messages.append({"role": "user", "content": prompt})
+        st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+
+        # Keep last 20 messages to avoid context overflow
+        if len(st.session_state.chat_messages) > 20:
+            st.session_state.chat_messages = st.session_state.chat_messages[-20:]
+
+    if st.session_state.chat_messages:
+        if st.button("Clear chat", key="clear_chat"):
+            st.session_state.chat_messages = []
+            st.rerun()

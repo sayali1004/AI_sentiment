@@ -7,3 +7,5 @@ plotly
 python-dotenv
 pytest
 pycountry
+groq
+sentence-transformers

@@ -1,0 +1,6 @@
+[theme]
+primaryColor             = "#E11D48"   # rose-red — buttons, sliders, active elements
+backgroundColor          = "#FFF8F7"   # warm white with a faint red/rose tint
+secondaryBackgroundColor = "#FFF0EE"   # soft blush — sidebar, cards, expanders
+textColor                = "#1C0A09"   # warm near-black — readable, not cold
+font                     = "sans serif"

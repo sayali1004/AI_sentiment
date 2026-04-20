@@ -1,11 +1,12 @@
-"""Pipeline orchestrator: extract → transform → load → cleanup."""
+"""Pipeline orchestrator: extract → transform → embed → load → cleanup."""
 
 import logging
 import sys
-from datetime import date, timedelta
+from datetime import date
 
 from pipeline.extract import extract
 from pipeline.transform import transform
+from pipeline.embed import embed_texts, make_embed_text
 from pipeline.load import load
 from pipeline.cleanup import cleanup
 
@@ -22,6 +23,16 @@ def run(start_date: date | None = None, end_date: date | None = None) -> None:
 
     raw_df = extract(start_date, end_date)
     clean_df = transform(raw_df)
+
+    if not clean_df.empty:
+        logger.info("Generating embeddings for %d articles", len(clean_df))
+        texts = clean_df.apply(
+            lambda r: make_embed_text(r.get("title"), r.get("source_name"), r.get("organizations")),
+            axis=1,
+        ).tolist()
+        clean_df = clean_df.copy()
+        clean_df["embedding"] = embed_texts(texts)
+
     loaded = load(clean_df)
     cleanup()
 
