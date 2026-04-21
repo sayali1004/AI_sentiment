@@ -362,9 +362,9 @@ st.title("AI Sentiment Dashboard")
 tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🌍 Worldwide",
     "🇺🇸 US",
+    "🏢 Company Comparison",
     "🏈 Super Bowl",
     "🏗️ Data Centers",
-    "🏢 Company Comparison",
     "💬 Ask the Data",
     "ℹ️ About",
 ])
@@ -865,10 +865,10 @@ with tab1:
 
 
 # ==================================================================
-# TAB 2 — Super Bowl
+# TAB 3 — Super Bowl
 # ==================================================================
 
-with tab2:
+with tab3:
     st.header("Super Bowl LX — Did Anthropic's Ad Shift AI Sentiment?")
     st.markdown(
         "Anthropic ran a major ad during **Super Bowl LX** on **February 9, 2026**. "
@@ -1029,10 +1029,10 @@ with tab2:
 
 
 # ==================================================================
-# TAB 3 — Data Centers
+# TAB 4 — Data Centers
 # ==================================================================
 
-with tab3:
+with tab4:
     st.header("Data Center Sentiment")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
@@ -1178,10 +1178,10 @@ with tab3:
 
 
 # ==================================================================
-# TAB 4 — Company Comparison
+# TAB 2 — Company Comparison
 # ==================================================================
 
-with tab4:
+with tab2:
     st.header("Company Comparison")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
