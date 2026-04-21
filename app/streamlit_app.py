@@ -360,21 +360,21 @@ st.title("AI Sentiment Dashboard")
 # ------------------------------------------------------------------
 
 tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "ℹ️ About",
     "🌍 Worldwide",
     "🇺🇸 US",
     "🏈 Super Bowl",
     "🏗️ Data Centers",
     "🏢 Company Comparison",
     "💬 Ask the Data",
+    "ℹ️ About",
 ])
 
 
 # ==================================================================
-# TAB 0 — About
+# TAB 6 — About
 # ==================================================================
 
-with tab0:
+with tab6:
 
     st.markdown("## AI Sentiment Heatmap")
     st.markdown("##### *Tracking how the world feels about AI — one headline at a time.*")
@@ -546,10 +546,10 @@ with tab0:
 
 
 # ==================================================================
-# TAB 1 — Worldwide Sentiment
+# TAB 0 — Worldwide Sentiment
 # ==================================================================
 
-with tab1:
+with tab0:
     st.header("Worldwide AI Sentiment")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
@@ -737,10 +737,10 @@ with tab1:
 
 
 # ==================================================================
-# TAB 2 — US Sentiment
+# TAB 1 — US Sentiment
 # ==================================================================
 
-with tab2:
+with tab1:
     st.header("US AI Sentiment")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
@@ -865,10 +865,10 @@ with tab2:
 
 
 # ==================================================================
-# TAB 3 — Super Bowl
+# TAB 2 — Super Bowl
 # ==================================================================
 
-with tab3:
+with tab2:
     st.header("Super Bowl LX — Did Anthropic's Ad Shift AI Sentiment?")
     st.markdown(
         "Anthropic ran a major ad during **Super Bowl LX** on **February 9, 2026**. "
@@ -1029,10 +1029,10 @@ with tab3:
 
 
 # ==================================================================
-# TAB 4 — Data Centers
+# TAB 3 — Data Centers
 # ==================================================================
 
-with tab4:
+with tab3:
     st.header("Data Center Sentiment")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
@@ -1178,10 +1178,10 @@ with tab4:
 
 
 # ==================================================================
-# TAB 5 — Company Comparison
+# TAB 4 — Company Comparison
 # ==================================================================
 
-with tab5:
+with tab4:
     st.header("Company Comparison")
     st.caption(f"Showing data from {start_date} to {end_date}")
 
@@ -1356,10 +1356,10 @@ with tab5:
 
 
 # ==================================================================
-# TAB 6 — Ask the Data (RAG Chatbot)
+# TAB 5 — Ask the Data (RAG Chatbot)
 # ==================================================================
 
-with tab6:
+with tab5:
     import json
     from groq import Groq
 
