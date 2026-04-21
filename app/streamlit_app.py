@@ -595,9 +595,9 @@ with tab0:
         avg_tone = float(df_world_filtered["avg_tone"].mean()) if not df_world_filtered.empty else 0.0
 
         kpi1, kpi2, kpi3 = st.columns(3)
-        kpi1.metric("Total Articles", f"{total_articles:,}")
-        kpi2.metric("Countries Covered", countries_covered)
-        kpi3.metric("Avg Tone", f"{avg_tone:.2f}")
+        kpi1.metric("Avg Tone", f"{avg_tone:.2f}")
+        kpi2.metric("Total Articles", f"{total_articles:,}")
+        kpi3.metric("Countries Covered", countries_covered)
 
         st.divider()
 
@@ -618,20 +618,6 @@ with tab0:
             col_left, col_right = st.columns(2)
 
             with col_left:
-                fig_vol = px.line(
-                    df_ts_all,
-                    x="date",
-                    y="article_count",
-                    title="Daily Article Volume (All AI)",
-                    labels={"date": "Date", "article_count": "Article Count"},
-                )
-                fig_vol.update_layout(
-                    hovermode="x unified",
-                    margin=dict(l=0, r=0, t=40, b=0),
-                )
-                st.plotly_chart(fig_vol, use_container_width=True)
-
-            with col_right:
                 fig_tone = px.line(
                     df_ts_all,
                     x="date",
@@ -645,6 +631,20 @@ with tab0:
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
                 st.plotly_chart(fig_tone, use_container_width=True)
+
+            with col_right:
+                fig_vol = px.line(
+                    df_ts_all,
+                    x="date",
+                    y="article_count",
+                    title="Daily Article Volume (All AI)",
+                    labels={"date": "Date", "article_count": "Article Count"},
+                )
+                fig_vol.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_vol, use_container_width=True)
 
         st.divider()
 
