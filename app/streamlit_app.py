@@ -359,14 +359,13 @@ st.title("AI Sentiment Dashboard")
 # Tabs
 # ------------------------------------------------------------------
 
-tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "ℹ️ About",
     "🌍 Worldwide",
     "🇺🇸 US",
     "🏈 Super Bowl",
     "🏗️ Data Centers",
     "🏢 Company Comparison",
-    "🔍 Topic Deep Dive",
     "💬 Ask the Data",
 ])
 
@@ -1357,20 +1356,10 @@ with tab5:
 
 
 # ==================================================================
-# TAB 6 — Topic Deep Dive
+# TAB 6 — Ask the Data (RAG Chatbot)
 # ==================================================================
 
 with tab6:
-    st.header("Topic Deep Dive")
-
-    st.info("Phase 2 feature: Topic-level drill-down into headline themes. Coming soon.")
-
-
-# ==================================================================
-# TAB 7 — Ask the Data (RAG Chatbot)
-# ==================================================================
-
-with tab7:
     import json
     from groq import Groq
 
