@@ -1,4 +1,4 @@
-"""AI Sentiment Dashboard — Streamlit App."""
+"""AI Sentiment Tracker — Streamlit App."""
 
 import sys
 import os
@@ -12,7 +12,7 @@ import pycountry
 from datetime import date, timedelta
 from supabase import create_client
 
-st.set_page_config(page_title="AI Sentiment Dashboard", layout="wide", page_icon="🌍")
+st.set_page_config(page_title="AI Sentiment Tracker", layout="wide", page_icon="🌍")
 
 st.markdown("""
 <style>
@@ -353,7 +353,7 @@ if start_date > end_date:
 # Title
 # ------------------------------------------------------------------
 
-st.title("AI Sentiment Dashboard")
+st.title("AI Sentiment Tracker")
 
 # ------------------------------------------------------------------
 # Tabs
