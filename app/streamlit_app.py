@@ -764,9 +764,9 @@ with tab1:
         us_avg_tone = float(df_us_state["avg_tone"].mean())
 
         kpi1, kpi2, kpi3 = st.columns(3)
-        kpi1.metric("Total US Articles", f"{us_total_articles:,}")
-        kpi2.metric("States Covered", states_covered)
-        kpi3.metric("US Avg Tone", f"{us_avg_tone:.2f}")
+        kpi1.metric("US Avg Tone", f"{us_avg_tone:.2f}")
+        kpi2.metric("Total US Articles", f"{us_total_articles:,}")
+        kpi3.metric("States Covered", states_covered)
 
         st.divider()
 
@@ -785,20 +785,6 @@ with tab1:
             col_left, col_right = st.columns(2)
 
             with col_left:
-                fig_us_vol = px.line(
-                    df_us_ts,
-                    x="date",
-                    y="article_count",
-                    title="Daily Article Volume (US)",
-                    labels={"date": "Date", "article_count": "Article Count"},
-                )
-                fig_us_vol.update_layout(
-                    hovermode="x unified",
-                    margin=dict(l=0, r=0, t=40, b=0),
-                )
-                st.plotly_chart(fig_us_vol, use_container_width=True)
-
-            with col_right:
                 fig_us_tone = px.line(
                     df_us_ts,
                     x="date",
@@ -812,6 +798,20 @@ with tab1:
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
                 st.plotly_chart(fig_us_tone, use_container_width=True)
+
+            with col_right:
+                fig_us_vol = px.line(
+                    df_us_ts,
+                    x="date",
+                    y="article_count",
+                    title="Daily Article Volume (US)",
+                    labels={"date": "Date", "article_count": "Article Count"},
+                )
+                fig_us_vol.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_us_vol, use_container_width=True)
 
         st.divider()
 
