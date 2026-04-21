@@ -1257,25 +1257,6 @@ with tab2:
             col_left, col_right = st.columns(2)
 
             with col_left:
-                fig_org_vol = px.line(
-                    df_ts_org,
-                    x="date",
-                    y="article_count",
-                    color="org_name_display",
-                    title="Daily Volume by Company",
-                    labels={
-                        "date": "Date",
-                        "article_count": "Article Count",
-                        "org_name_display": "Company",
-                    },
-                )
-                fig_org_vol.update_layout(
-                    hovermode="x unified",
-                    margin=dict(l=0, r=0, t=40, b=0),
-                )
-                st.plotly_chart(fig_org_vol, use_container_width=True)
-
-            with col_right:
                 fig_org_tone = px.line(
                     df_ts_org,
                     x="date",
@@ -1294,6 +1275,25 @@ with tab2:
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
                 st.plotly_chart(fig_org_tone, use_container_width=True)
+
+            with col_right:
+                fig_org_vol = px.line(
+                    df_ts_org,
+                    x="date",
+                    y="article_count",
+                    color="org_name_display",
+                    title="Daily Volume by Company",
+                    labels={
+                        "date": "Date",
+                        "article_count": "Article Count",
+                        "org_name_display": "Company",
+                    },
+                )
+                fig_org_vol.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_org_vol, use_container_width=True)
 
         st.divider()
 
@@ -1316,25 +1316,6 @@ with tab2:
             col_left, col_right = st.columns(2)
 
             with col_left:
-                fig_us_org_vol = px.line(
-                    df_us_org_ts,
-                    x="date",
-                    y="article_count",
-                    color="org_name_display",
-                    title="Daily Volume by Company (US)",
-                    labels={
-                        "date": "Date",
-                        "article_count": "Article Count",
-                        "org_name_display": "Company",
-                    },
-                )
-                fig_us_org_vol.update_layout(
-                    hovermode="x unified",
-                    margin=dict(l=0, r=0, t=40, b=0),
-                )
-                st.plotly_chart(fig_us_org_vol, use_container_width=True)
-
-            with col_right:
                 fig_us_org_tone = px.line(
                     df_us_org_ts,
                     x="date",
@@ -1353,6 +1334,25 @@ with tab2:
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
                 st.plotly_chart(fig_us_org_tone, use_container_width=True)
+
+            with col_right:
+                fig_us_org_vol = px.line(
+                    df_us_org_ts,
+                    x="date",
+                    y="article_count",
+                    color="org_name_display",
+                    title="Daily Volume by Company (US)",
+                    labels={
+                        "date": "Date",
+                        "article_count": "Article Count",
+                        "org_name_display": "Company",
+                    },
+                )
+                fig_us_org_vol.update_layout(
+                    hovermode="x unified",
+                    margin=dict(l=0, r=0, t=40, b=0),
+                )
+                st.plotly_chart(fig_us_org_vol, use_container_width=True)
 
 
 # ==================================================================
