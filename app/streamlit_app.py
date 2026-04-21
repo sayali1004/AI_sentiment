@@ -1051,9 +1051,9 @@ with tab4:
 
         # ---- KPI row ----
         kpi1, kpi2, kpi3 = st.columns(3)
-        kpi1.metric("Total Articles", f"{int(df_dc_world['article_count'].sum()):,}")
-        kpi2.metric("Countries Covered", int(df_dc_world["country_code"].nunique()))
-        kpi3.metric("Global Avg Tone", f"{df_dc_world['avg_tone'].mean():.2f}")
+        kpi1.metric("Global Avg Tone", f"{df_dc_world['avg_tone'].mean():.2f}")
+        kpi2.metric("Total Articles", f"{int(df_dc_world['article_count'].sum()):,}")
+        kpi3.metric("Countries Covered", int(df_dc_world["country_code"].nunique()))
 
         st.divider()
 
@@ -1069,15 +1069,6 @@ with tab4:
         if not df_dc_ts.empty:
             col_left, col_right = st.columns(2)
             with col_left:
-                fig_dc_vol = px.line(
-                    df_dc_ts, x="date", y="article_count",
-                    title="Daily Article Volume (Data Centers)",
-                    labels={"date": "Date", "article_count": "Article Count"},
-                )
-                fig_dc_vol.update_layout(hovermode="x unified", margin=dict(l=0, r=0, t=40, b=0))
-                st.plotly_chart(fig_dc_vol, use_container_width=True)
-
-            with col_right:
                 fig_dc_tone = px.line(
                     df_dc_ts, x="date", y="avg_tone",
                     title="Daily Avg Tone (Data Centers)",
@@ -1086,6 +1077,15 @@ with tab4:
                 fig_dc_tone.add_hline(y=0, line_dash="dot", line_color="gray")
                 fig_dc_tone.update_layout(hovermode="x unified", margin=dict(l=0, r=0, t=40, b=0))
                 st.plotly_chart(fig_dc_tone, use_container_width=True)
+
+            with col_right:
+                fig_dc_vol = px.line(
+                    df_dc_ts, x="date", y="article_count",
+                    title="Daily Article Volume (Data Centers)",
+                    labels={"date": "Date", "article_count": "Article Count"},
+                )
+                fig_dc_vol.update_layout(hovermode="x unified", margin=dict(l=0, r=0, t=40, b=0))
+                st.plotly_chart(fig_dc_vol, use_container_width=True)
 
         st.divider()
 
