@@ -688,7 +688,6 @@ def get_topic_themes(
          .select("title, avg_tone")
          .gte("published_date", start_date)
          .lte("published_date", end_date)
-         .not_.like("title", "http%")
          .limit(2000))
     if org_filter and len(org_filter) == 1:
         q = q.contains("organizations", [org_filter[0]])
@@ -700,8 +699,10 @@ def get_topic_themes(
     pos_themes: list = []
     neg_themes: list = []
     for row in (resp.data or []):
-        tone = _to_float(row.get("avg_tone"))
         title = row.get("title") or ""
+        if title.startswith("http"):
+            continue
+        tone = _to_float(row.get("avg_tone"))
         if tone > 1:
             pos_themes.extend(_detect_themes(title, True))
         elif tone < -1:
@@ -710,6 +711,46 @@ def get_topic_themes(
     return {
         "positive": [{"theme": t, "count": c} for t, c in Counter(pos_themes).most_common(10)],
         "negative": [{"theme": t, "count": c} for t, c in Counter(neg_themes).most_common(10)],
+    }
+
+
+@app.get("/api/topics/themes-by-state")
+def get_themes_by_state(
+    state_code: str,
+    start_date: str,
+    end_date: str,
+):
+    client = get_supabase()
+    try:
+        resp = (client.table("articles")
+                .select("title, avg_tone")
+                .gte("published_date", start_date)
+                .lte("published_date", end_date)
+                .eq("mentioned_adm1_code", state_code)
+                .limit(1000)
+                .execute())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    pos_themes: list = []
+    neg_themes: list = []
+    total = 0
+    for row in (resp.data or []):
+        title = row.get("title") or ""
+        if title.startswith("http"):
+            continue
+        total += 1
+        tone = _to_float(row.get("avg_tone"))
+        if tone > 1:
+            pos_themes.extend(_detect_themes(title, True))
+        elif tone < -1:
+            neg_themes.extend(_detect_themes(title, False))
+
+    return {
+        "state": state_code,
+        "article_count": total,
+        "positive": [{"theme": t, "count": c} for t, c in Counter(pos_themes).most_common(8)],
+        "negative": [{"theme": t, "count": c} for t, c in Counter(neg_themes).most_common(8)],
     }
 
 
@@ -727,12 +768,12 @@ def get_top_articles(
              .select("title, avg_tone, published_date, mentioned_country_code, organizations")
              .gte("published_date", start_date)
              .lte("published_date", end_date)
-             .not_.like("title", "http%")
              .order("avg_tone", desc=desc)
-             .limit(n))
+             .limit(n * 3))
         if org_filter and len(org_filter) == 1:
             q = q.contains("organizations", [org_filter[0]])
-        return (q.execute().data or [])
+        rows = q.execute().data or []
+        return [r for r in rows if not (r.get("title") or "").startswith("http")][:n]
 
     def _fmt(rows):
         return [

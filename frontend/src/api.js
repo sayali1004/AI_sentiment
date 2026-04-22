@@ -71,6 +71,11 @@ export async function postChat(userMessage, history = []) {
   return res.json()
 }
 
+export async function getThemesByState(stateCode, startDate, endDate) {
+  const q = new URLSearchParams({ state_code: stateCode, start_date: startDate, end_date: endDate })
+  return fetchJSON(`${BASE}/topics/themes-by-state?${q}`)
+}
+
 export async function getTopicThemes(startDate, endDate, orgFilter = []) {
   const q = buildParams({ start_date: startDate, end_date: endDate }, { org_filter: orgFilter })
   return fetchJSON(`${BASE}/topics/themes?${q}`)
