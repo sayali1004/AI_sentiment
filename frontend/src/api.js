@@ -70,3 +70,23 @@ export async function postChat(userMessage, history = []) {
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
+
+export async function getTopicThemes(startDate, endDate, orgFilter = []) {
+  const q = buildParams({ start_date: startDate, end_date: endDate }, { org_filter: orgFilter })
+  return fetchJSON(`${BASE}/topics/themes?${q}`)
+}
+
+export async function getTopArticles(startDate, endDate, orgFilter = [], n = 10) {
+  const q = buildParams({ start_date: startDate, end_date: endDate, n }, { org_filter: orgFilter })
+  return fetchJSON(`${BASE}/topics/top-articles?${q}`)
+}
+
+export async function postSWOT(org, startDate, endDate) {
+  const res = await fetch(`${BASE}/swot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ org, start_date: startDate, end_date: endDate }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}

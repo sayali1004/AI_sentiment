@@ -5,6 +5,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import json
+import re
+from collections import Counter
 import pandas as pd
 from datetime import date
 from typing import Optional
@@ -638,3 +640,176 @@ def chat(req: ChatRequest):
             continue
 
     return {"reply": "Both Groq models are currently unavailable (rate limit or context too large). Please try again in a few minutes."}
+
+
+# ---------------------------------------------------------------------------
+# Topic Deep Dive — theme detection
+# ---------------------------------------------------------------------------
+
+_NEG_THEMES = {
+    "Job Displacement":       r"\b(job.loss|layoff|unemploy|replac\w+|displace\w*|workforce.cut)\b",
+    "Safety & Risk":          r"\b(safet\w*|dangerous|harm\w*|threat\w*|concern\w*|risk\w*)\b",
+    "AI Regulation":          r"\b(regulat\w*|ban\b|restrict\w*|prohibit\w*|legislat\w*|govern\w*)\b",
+    "Privacy & Surveillance": r"\b(privac\w*|surveil\w*|facial.recogni\w*|data.collect\w*)\b",
+    "Bias & Ethics":          r"\b(bias\w*|discriminat\w*|ethic\w*|unfair\w*|racist|prejudice)\b",
+    "Security Threats":       r"\b(hack\w*|cyber\w*|breach\w*|attack\w*|fraud\w*|exploit\w*)\b",
+    "Misinformation":         r"\b(deepfake|misinform\w*|disinform\w*|manipulat\w*|propaganda)\b",
+    "War & Weapons AI":       r"\b(weapon\w*|militar\w*|\bwar\b|bomb\w*|lethal\w*|drone\w*)\b",
+}
+
+_POS_THEMES = {
+    "AI Breakthrough":         r"\b(breakthrough|advance\w*|achiev\w*|milestone|record|pioneer\w*)\b",
+    "Investment & Funding":    r"\b(invest\w*|fund\w*|billion|million|growth|valuat\w*|acqui\w*)\b",
+    "Healthcare AI":           r"\b(health\w*|medic\w*|diagnos\w*|treatment|cancer|patient\w*)\b",
+    "Productivity & Tools":    r"\b(productiv\w*|efficien\w*|\btool\w*|assistant|workflow\w*)\b",
+    "Research & Science":      r"\b(research\w*|discover\w*|stud\w*|\bpaper\b|publish\w*|science)\b",
+    "New Launch & Release":    r"\b(launch\w*|releas\w*|deploy\w*|announc\w*|introduc\w*)\b",
+    "Partnership & Deal":      r"\b(partner\w*|collabor\w*|\bdeal\b|merger\w*|integrat\w*)\b",
+    "Education & Open Source": r"\b(educat\w*|learn\w*|open.source|access\w*|democrati\w*)\b",
+}
+
+
+def _detect_themes(title: str, positive: bool) -> list:
+    if not title:
+        return []
+    patterns = _POS_THEMES if positive else _NEG_THEMES
+    t = title.lower()
+    return [name for name, pat in patterns.items() if re.search(pat, t, re.IGNORECASE)]
+
+
+@app.get("/api/topics/themes")
+def get_topic_themes(
+    start_date: str,
+    end_date: str,
+    org_filter: Optional[list[str]] = Query(None),
+):
+    client = get_supabase()
+    q = (client.table("articles")
+         .select("title, avg_tone")
+         .gte("published_date", start_date)
+         .lte("published_date", end_date)
+         .not_.like("title", "http%")
+         .limit(2000))
+    if org_filter and len(org_filter) == 1:
+        q = q.contains("organizations", [org_filter[0]])
+    try:
+        resp = q.execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    pos_themes: list = []
+    neg_themes: list = []
+    for row in (resp.data or []):
+        tone = _to_float(row.get("avg_tone"))
+        title = row.get("title") or ""
+        if tone > 1:
+            pos_themes.extend(_detect_themes(title, True))
+        elif tone < -1:
+            neg_themes.extend(_detect_themes(title, False))
+
+    return {
+        "positive": [{"theme": t, "count": c} for t, c in Counter(pos_themes).most_common(10)],
+        "negative": [{"theme": t, "count": c} for t, c in Counter(neg_themes).most_common(10)],
+    }
+
+
+@app.get("/api/topics/top-articles")
+def get_top_articles(
+    start_date: str,
+    end_date: str,
+    org_filter: Optional[list[str]] = Query(None),
+    n: int = 10,
+):
+    client = get_supabase()
+
+    def _fetch(desc: bool):
+        q = (client.table("articles")
+             .select("title, avg_tone, published_date, mentioned_country_code, organizations")
+             .gte("published_date", start_date)
+             .lte("published_date", end_date)
+             .not_.like("title", "http%")
+             .order("avg_tone", desc=desc)
+             .limit(n))
+        if org_filter and len(org_filter) == 1:
+            q = q.contains("organizations", [org_filter[0]])
+        return (q.execute().data or [])
+
+    def _fmt(rows):
+        return [
+            {
+                "title": r.get("title"),
+                "avg_tone": round(_to_float(r.get("avg_tone")), 2),
+                "date": r.get("published_date"),
+                "country": r.get("mentioned_country_code"),
+                "orgs": r.get("organizations") or [],
+            }
+            for r in rows if r.get("title")
+        ]
+
+    return {"positive": _fmt(_fetch(True)), "negative": _fmt(_fetch(False))}
+
+
+# ---------------------------------------------------------------------------
+# SWOT Analysis
+# ---------------------------------------------------------------------------
+
+class SWOTRequest(BaseModel):
+    org: str
+    start_date: str
+    end_date: str
+
+
+@app.post("/api/swot")
+def get_swot(req: SWOTRequest):
+    headlines = _execute_tool("get_recent_headlines", {
+        "start_date": req.start_date,
+        "end_date": req.end_date,
+        "org_filter": req.org,
+        "limit": 25,
+        "sort_by": "recent",
+    })
+    stats = _execute_tool("get_sentiment_by_org", {
+        "start_date": req.start_date,
+        "end_date": req.end_date,
+        "org_list": [req.org],
+    })
+    org_display = req.org.replace("_", " ").title()
+
+    prompt = f"""You are an AI industry analyst. Generate a SWOT analysis for {org_display} based on the news data below.
+
+Sentiment stats:
+{stats}
+
+Recent headlines:
+{headlines}
+
+Return ONLY valid JSON, no markdown, no explanation:
+{{
+  "strengths": ["...", "...", "..."],
+  "weaknesses": ["...", "...", "..."],
+  "opportunities": ["...", "...", "..."],
+  "threats": ["...", "...", "..."]
+}}
+
+Each array: 3-4 concise bullet points grounded in the actual news above."""
+
+    for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+        try:
+            resp = get_groq().chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+            )
+            content = resp.choices[0].message.content.strip()
+            if "```" in content:
+                parts = content.split("```")
+                content = parts[1] if len(parts) > 1 else parts[0]
+                if content.startswith("json"):
+                    content = content[4:]
+            return json.loads(content.strip())
+        except (RateLimitError, APIStatusError):
+            continue
+        except Exception as e:
+            return {"error": str(e), "strengths": [], "weaknesses": [], "opportunities": [], "threats": []}
+
+    return {"error": "Models unavailable", "strengths": [], "weaknesses": [], "opportunities": [], "threats": []}
