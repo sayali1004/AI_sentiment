@@ -130,9 +130,9 @@ export default function US({ filters }) {
       </div>
 
       <div className="metrics-row">
+        <MetricCard label="US Avg Tone" value={avgTone.toFixed(2)} />
         <MetricCard label="Total US Articles" value={totalArticles.toLocaleString()} />
         <MetricCard label="States Covered" value={statesCovered} />
-        <MetricCard label="US Avg Tone" value={avgTone.toFixed(2)} />
       </div>
 
       <hr className="divider" />

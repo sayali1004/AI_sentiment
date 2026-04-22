@@ -92,21 +92,6 @@ export default function Sidebar({ filters, onFiltersChange }) {
         </div>
       </div>
 
-      <div>
-        <div className="sidebar-section-label">Companies</div>
-        <div className="sidebar-field">
-          <MultiSelect
-            options={ALL_ORGS}
-            value={selectedOrgs}
-            onChange={orgs => onFiltersChange({ ...filters, selectedOrgs: orgs })}
-            formatFn={formatOrg}
-          />
-        </div>
-        <p className="sidebar-caption" style={{ marginTop: 8 }}>
-          Filter applies to Worldwide, US, and Data Centers tabs.
-        </p>
-      </div>
-
       <div className="sidebar-spacer" />
 
       <div className="sidebar-footer">

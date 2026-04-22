@@ -803,8 +803,8 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .team-avatar {
-  width: 72px;
-  height: 72px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--stellar-dim), var(--nebula-dim));
   margin: 0 auto 14px;
@@ -831,6 +831,21 @@ input[type="range"]::-webkit-slider-thumb {
 
 .team-github:hover {
   color: var(--stellar-bright);
+}
+
+.team-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.team-bio {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  text-align: left;
 }
 
 .tech-table, .use-table {

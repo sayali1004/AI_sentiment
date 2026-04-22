@@ -152,9 +152,9 @@ export default function Worldwide({ filters }) {
 
       {/* KPIs */}
       <div className="metrics-row">
+        <MetricCard label="Global Avg Tone" value={globalAvgTone.toFixed(2)} />
         <MetricCard label="Total Articles" value={totalArticles.toLocaleString()} />
         <MetricCard label="Countries Covered" value={countriesCovered} />
-        <MetricCard label="Global Avg Tone" value={globalAvgTone.toFixed(2)} />
       </div>
 
       <hr className="divider" />
