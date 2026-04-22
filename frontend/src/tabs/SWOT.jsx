@@ -133,18 +133,6 @@ export default function SWOT({ filters = {} }) {
             ))}
           </div>
 
-          <div style={{
-            marginTop: 20,
-            padding: '10px 16px',
-            background: 'var(--glass-bg)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 8,
-            color: 'var(--text-muted)',
-            fontSize: 11,
-            letterSpacing: '0.04em',
-          }}>
-            AI-generated from GDELT news sentiment · {startDate} to {endDate} · Updates with date range
-          </div>
         </>
       )}
     </div>
