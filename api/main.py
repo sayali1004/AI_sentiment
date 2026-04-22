@@ -802,21 +802,30 @@ class SWOTRequest(BaseModel):
 
 @app.post("/api/swot")
 def get_swot(req: SWOTRequest):
+    all_orgs = req.org == "all"
+
     headlines = _execute_tool("get_recent_headlines", {
         "start_date": req.start_date,
         "end_date": req.end_date,
-        "org_filter": req.org,
+        **({"org_filter": req.org} if not all_orgs else {}),
         "limit": 25,
         "sort_by": "recent",
     })
-    stats = _execute_tool("get_sentiment_by_org", {
-        "start_date": req.start_date,
-        "end_date": req.end_date,
-        "org_list": [req.org],
-    })
-    org_display = req.org.replace("_", " ").title()
+    stats = (
+        _execute_tool("get_sentiment_timeseries", {
+            "start_date": req.start_date,
+            "end_date": req.end_date,
+        })
+        if all_orgs else
+        _execute_tool("get_sentiment_by_org", {
+            "start_date": req.start_date,
+            "end_date": req.end_date,
+            "org_list": [req.org],
+        })
+    )
+    org_display = "the Global AI Industry" if all_orgs else req.org.replace("_", " ").title()
 
-    prompt = f"""You are an AI industry analyst. Generate a SWOT analysis for {org_display} based on the news data below.
+    prompt = f"""You are an AI industry analyst. Generate a SWOT analysis for {org_display} based on the news sentiment data below.
 
 Sentiment stats:
 {stats}

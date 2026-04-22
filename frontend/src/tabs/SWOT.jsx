@@ -2,12 +2,25 @@ import { useState } from 'react'
 import { postSWOT } from '../api.js'
 
 const ORGS = [
-  'anthropic', 'openai', 'google', 'microsoft', 'meta',
-  'nvidia', 'amazon', 'apple', 'xai', 'mistral',
-  'deepseek', 'anduril', 'palantir', 'department_of_defense',
+  { value: 'all',                   label: 'All Companies (Global AI Industry)' },
+  { value: 'anthropic',             label: 'Anthropic' },
+  { value: 'openai',                label: 'OpenAI' },
+  { value: 'google',                label: 'Google' },
+  { value: 'microsoft',             label: 'Microsoft' },
+  { value: 'meta',                  label: 'Meta' },
+  { value: 'nvidia',                label: 'Nvidia' },
+  { value: 'amazon',                label: 'Amazon' },
+  { value: 'apple',                 label: 'Apple' },
+  { value: 'xai',                   label: 'xAI' },
+  { value: 'mistral',               label: 'Mistral' },
+  { value: 'deepseek',              label: 'DeepSeek' },
+  { value: 'anduril',               label: 'Anduril' },
+  { value: 'palantir',              label: 'Palantir' },
+  { value: 'department_of_defense', label: 'Department of Defense' },
 ]
 
 function formatOrg(o) {
+  if (o === 'all') return 'Global AI Industry'
   return o.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
@@ -48,7 +61,7 @@ const QUAD = [
 
 export default function SWOT({ filters = {} }) {
   const { startDate, endDate } = filters
-  const [org, setOrg] = useState('openai')
+  const [org, setOrg] = useState('all')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -93,7 +106,7 @@ export default function SWOT({ filters = {} }) {
             cursor: 'pointer',
           }}
         >
-          {ORGS.map(o => <option key={o} value={o}>{formatOrg(o)}</option>)}
+          {ORGS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
 
         <button
