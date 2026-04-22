@@ -1,28 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { postSWOT } from '../api.js'
-
-const ORGS = [
-  { value: 'all',                   label: 'All Companies (Global AI Industry)' },
-  { value: 'anthropic',             label: 'Anthropic' },
-  { value: 'openai',                label: 'OpenAI' },
-  { value: 'google',                label: 'Google' },
-  { value: 'microsoft',             label: 'Microsoft' },
-  { value: 'meta',                  label: 'Meta' },
-  { value: 'nvidia',                label: 'Nvidia' },
-  { value: 'amazon',                label: 'Amazon' },
-  { value: 'apple',                 label: 'Apple' },
-  { value: 'xai',                   label: 'xAI' },
-  { value: 'mistral',               label: 'Mistral' },
-  { value: 'deepseek',              label: 'DeepSeek' },
-  { value: 'anduril',               label: 'Anduril' },
-  { value: 'palantir',              label: 'Palantir' },
-  { value: 'department_of_defense', label: 'Department of Defense' },
-]
-
-function formatOrg(o) {
-  if (o === 'all') return 'Global AI Industry'
-  return o.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-}
 
 const QUAD = [
   {
@@ -32,6 +9,7 @@ const QUAD = [
     color: '#34d399',
     bg: 'rgba(52,211,153,0.07)',
     border: 'rgba(52,211,153,0.25)',
+    glow: 'rgba(52,211,153,0.12)',
   },
   {
     key: 'weaknesses',
@@ -40,6 +18,7 @@ const QUAD = [
     color: '#fb7185',
     bg: 'rgba(251,113,133,0.07)',
     border: 'rgba(251,113,133,0.25)',
+    glow: 'rgba(251,113,133,0.12)',
   },
   {
     key: 'opportunities',
@@ -48,6 +27,7 @@ const QUAD = [
     color: '#38bdf8',
     bg: 'rgba(56,189,248,0.07)',
     border: 'rgba(56,189,248,0.25)',
+    glow: 'rgba(56,189,248,0.12)',
   },
   {
     key: 'threats',
@@ -56,102 +36,52 @@ const QUAD = [
     color: '#fbbf24',
     bg: 'rgba(251,191,36,0.07)',
     border: 'rgba(251,191,36,0.25)',
+    glow: 'rgba(251,191,36,0.12)',
   },
 ]
 
+function Loader() {
+  return (
+    <div className="loader-wrap">
+      <div className="orbit-loader" />
+      <div className="loader-text">GENERATING SWOT ANALYSIS…</div>
+    </div>
+  )
+}
+
 export default function SWOT({ filters = {} }) {
   const { startDate, endDate } = filters
-  const [org, setOrg] = useState('all')
   const [result, setResult] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const generate = async () => {
+  useEffect(() => {
     if (!startDate || !endDate) return
     setLoading(true)
     setError(null)
     setResult(null)
-    try {
-      const data = await postSWOT(org, startDate, endDate)
-      if (data.error) setError(data.error)
-      else setResult(data)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+    postSWOT('all', startDate, endDate)
+      .then(data => {
+        if (data.error) setError(data.error)
+        else setResult(data)
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [startDate, endDate])
 
   return (
     <div>
       <div className="page-header">
         <div className="page-title">SWOT Analysis</div>
-        <div className="page-subtitle">AI-generated from live news sentiment · {startDate} → {endDate}</div>
+        <div className="page-subtitle">Global AI Industry · {startDate} → {endDate}</div>
       </div>
 
-      {/* Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
-        <label style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500 }}>Company</label>
-        <select
-          value={org}
-          onChange={e => { setOrg(e.target.value); setResult(null) }}
-          style={{
-            background: 'var(--space-mid)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 8,
-            color: 'var(--text-primary)',
-            padding: '6px 12px',
-            fontSize: 13,
-            fontFamily: 'Space Grotesk, sans-serif',
-            cursor: 'pointer',
-          }}
-        >
-          {ORGS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+      {loading && <Loader />}
 
-        <button
-          onClick={generate}
-          disabled={loading}
-          style={{
-            background: loading ? 'var(--space-mid)' : 'var(--stellar-dim)',
-            border: '1px solid var(--stellar)',
-            borderRadius: 8,
-            color: loading ? 'var(--text-muted)' : 'var(--text-primary)',
-            padding: '6px 20px',
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: 'Space Grotesk, sans-serif',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            letterSpacing: '0.04em',
-            transition: 'all 0.2s',
-          }}
-        >
-          {loading ? 'Analysing…' : 'Generate SWOT'}
-        </button>
-      </div>
-
-      {error && <div className="banner error" style={{ marginBottom: 24 }}>Error: {error}</div>}
-
-      {loading && (
-        <div className="loader-wrap">
-          <div className="orbit-loader" />
-          <div className="loader-text">GENERATING SWOT FOR {formatOrg(org).toUpperCase()}…</div>
-        </div>
-      )}
+      {error && <div className="banner error">Error: {error}</div>}
 
       {result && (
         <>
-          <div style={{
-            textAlign: 'center',
-            marginBottom: 20,
-            color: 'var(--text-secondary)',
-            fontSize: 13,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-          }}>
-            {formatOrg(org)} · {startDate} → {endDate}
-          </div>
-
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -161,32 +91,41 @@ export default function SWOT({ filters = {} }) {
               <div key={q.key} style={{
                 background: q.bg,
                 border: `1px solid ${q.border}`,
-                borderRadius: 12,
-                padding: '20px 24px',
+                borderRadius: 14,
+                padding: '22px 26px',
+                boxShadow: `0 0 32px ${q.glow}`,
               }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 14,
-                }}>
-                  <span style={{ color: q.color, fontSize: 16 }}>{q.icon}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <span style={{ color: q.color, fontSize: 18 }}>{q.icon}</span>
                   <span style={{
                     color: q.color,
                     fontFamily: 'Space Mono, monospace',
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 700,
-                    letterSpacing: '0.1em',
+                    letterSpacing: '0.12em',
                     textTransform: 'uppercase',
                   }}>
                     {q.label}
                   </span>
                 </div>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {(result[q.key] || []).map((point, i) => (
-                    <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                      <span style={{ color: q.color, fontSize: 10, marginTop: 5, flexShrink: 0 }}>◆</span>
-                      <span style={{ color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.55 }}>{point}</span>
+                    <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <span style={{
+                        color: q.color,
+                        fontSize: 8,
+                        marginTop: 6,
+                        flexShrink: 0,
+                        opacity: 0.8,
+                      }}>◆</span>
+                      <span style={{
+                        color: 'var(--text-primary)',
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                      }}>
+                        {point}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -204,20 +143,9 @@ export default function SWOT({ filters = {} }) {
             fontSize: 11,
             letterSpacing: '0.04em',
           }}>
-            Generated by Groq LLaMA from GDELT news data · {startDate} to {endDate} · Refresh to regenerate
+            AI-generated from GDELT news sentiment · {startDate} to {endDate} · Updates with date range
           </div>
         </>
-      )}
-
-      {!result && !loading && !error && (
-        <div className="coming-soon">
-          <div className="coming-soon-icon">◈</div>
-          <div className="coming-soon-title">Select a company and generate</div>
-          <div className="coming-soon-body">
-            The SWOT is built from real news headlines and sentiment scores using LLaMA.
-            It reflects what the media is actually saying — not a generic template.
-          </div>
-        </div>
       )}
     </div>
   )
