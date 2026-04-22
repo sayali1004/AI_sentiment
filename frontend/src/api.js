@@ -1,6 +1,6 @@
-/* API client — all calls proxy through Vite to FastAPI on :8000 */
+/* API client — proxied via Vite in dev; VITE_API_BASE sets the backend origin in production */
 
-const BASE = '/api'
+const BASE = (import.meta.env.VITE_API_BASE || '') + '/api'
 
 async function fetchJSON(url) {
   const res = await fetch(url)
