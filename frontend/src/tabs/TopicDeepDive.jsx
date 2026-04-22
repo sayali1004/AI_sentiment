@@ -223,47 +223,7 @@ export default function TopicDeepDive({ filters = {} }) {
         <div className="page-subtitle">{startDate} → {endDate}</div>
       </div>
 
-      {/* Global KPIs */}
-      <div className="metrics-row">
-        <MetricCard label="Positive Theme Signals" value={totalPosThemes.toLocaleString()} />
-        <MetricCard label="Negative Theme Signals" value={totalNegThemes.toLocaleString()} />
-        <MetricCard
-          label="Sentiment Ratio"
-          value={totalPosThemes + totalNegThemes > 0
-            ? `${Math.round((totalPosThemes / (totalPosThemes + totalNegThemes)) * 100)}% pos`
-            : '—'}
-        />
-      </div>
-
-      {/* Global theme charts */}
-      <hr className="divider" />
-      <div className="section-header">Global Theme Distribution</div>
-      <div className="charts-row">
-        <ChartCard title="TOP POSITIVE THEMES">
-          {themes.positive.length === 0
-            ? <div className="banner info" style={{ margin: 16 }}>No positive themes detected.</div>
-            : <SpacePlot data={[posTrace]} layout={{ ...barLayoutBase, yaxis: { ...barLayoutBase.yaxis, tickfont: { size: 11, color: '#34d399' } } }} />
-          }
-        </ChartCard>
-        <ChartCard title="TOP NEGATIVE THEMES">
-          {themes.negative.length === 0
-            ? <div className="banner info" style={{ margin: 16 }}>No negative themes detected.</div>
-            : <SpacePlot data={[negTrace]} layout={{ ...barLayoutBase, yaxis: { ...barLayoutBase.yaxis, tickfont: { size: 11, color: '#fb7185' } } }} />
-          }
-        </ChartCard>
-      </div>
-
-      {/* Top articles */}
-      <hr className="divider" />
-      <div className="section-header">Most Positive Headlines</div>
-      <ArticleTable rows={articles?.positive} emptyMsg="No positive articles found." />
-
-      <hr className="divider" />
-      <div className="section-header">Most Negative Headlines</div>
-      <ArticleTable rows={articles?.negative} emptyMsg="No negative articles found." />
-
       {/* ── State vs State ── */}
-      <hr className="divider" />
       <div className="section-header">State vs State Comparison</div>
 
       {/* Dropdowns */}
@@ -337,6 +297,46 @@ export default function TopicDeepDive({ filters = {} }) {
           </>
         )
       }
+
+      {/* Global KPIs */}
+      <hr className="divider" />
+      <div className="metrics-row">
+        <MetricCard label="Positive Theme Signals" value={totalPosThemes.toLocaleString()} />
+        <MetricCard label="Negative Theme Signals" value={totalNegThemes.toLocaleString()} />
+        <MetricCard
+          label="Sentiment Ratio"
+          value={totalPosThemes + totalNegThemes > 0
+            ? `${Math.round((totalPosThemes / (totalPosThemes + totalNegThemes)) * 100)}% pos`
+            : '—'}
+        />
+      </div>
+
+      {/* Global theme charts */}
+      <hr className="divider" />
+      <div className="section-header">Global Theme Distribution</div>
+      <div className="charts-row">
+        <ChartCard title="TOP POSITIVE THEMES">
+          {themes.positive.length === 0
+            ? <div className="banner info" style={{ margin: 16 }}>No positive themes detected.</div>
+            : <SpacePlot data={[posTrace]} layout={{ ...barLayoutBase, yaxis: { ...barLayoutBase.yaxis, tickfont: { size: 11, color: '#34d399' } } }} />
+          }
+        </ChartCard>
+        <ChartCard title="TOP NEGATIVE THEMES">
+          {themes.negative.length === 0
+            ? <div className="banner info" style={{ margin: 16 }}>No negative themes detected.</div>
+            : <SpacePlot data={[negTrace]} layout={{ ...barLayoutBase, yaxis: { ...barLayoutBase.yaxis, tickfont: { size: 11, color: '#fb7185' } } }} />
+          }
+        </ChartCard>
+      </div>
+
+      {/* Top articles */}
+      <hr className="divider" />
+      <div className="section-header">Most Positive Headlines</div>
+      <ArticleTable rows={articles?.positive} emptyMsg="No positive articles found." />
+
+      <hr className="divider" />
+      <div className="section-header">Most Negative Headlines</div>
+      <ArticleTable rows={articles?.negative} emptyMsg="No negative articles found." />
     </div>
   )
 }
