@@ -1,6 +1,7 @@
-/* API client — proxied via Vite in dev; VITE_API_BASE sets the backend origin in production */
+/* API client — proxied via Vite in dev; hits Render directly in production */
 
-const BASE = (import.meta.env.VITE_API_BASE || '') + '/api'
+const IS_DEV = import.meta.env.DEV
+const BASE = (IS_DEV ? '' : 'https://ai-sentiment-bli0.onrender.com') + '/api'
 
 async function fetchJSON(url) {
   const res = await fetch(url)
