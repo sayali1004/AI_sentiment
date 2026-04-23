@@ -87,7 +87,7 @@ function StateDropdown({ label, value, onChange, states, disabled }) {
         <option value="">— Select state —</option>
         {states.map(s => (
           <option key={s.adm1_code} value={s.adm1_code}>
-            {stateName(s.adm1_code)} ({s.article_count.toLocaleString()} articles)
+            {stateName(s.adm1_code)}
           </option>
         ))}
       </select>
