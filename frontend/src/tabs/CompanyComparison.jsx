@@ -5,7 +5,7 @@ import {
   getTimeseriesPerOrgByCountry,
 } from '../api.js'
 import MetricCard from '../components/MetricCard.jsx'
-import ChartCard, { SpacePlot, LINE_COLORS } from '../components/ChartCard.jsx'
+import ChartCard, { SpacePlot, orgColor } from '../components/ChartCard.jsx'
 
 const ALL_ORGS = [
   'anthropic', 'openai', 'google', 'microsoft', 'meta', 'nvidia',
@@ -119,7 +119,7 @@ export default function CompanyComparison({ filters }) {
       x: rows.map(r => r.date), y: rows.map(r => r.article_count),
       type: 'scatter', mode: 'lines',
       name: formatOrg(org),
-      line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
+      line: { color: orgColor(org, i), width: 2 },
     }
   })
   const worldToneTraces = orgNames.map((org, i) => {
@@ -128,7 +128,7 @@ export default function CompanyComparison({ filters }) {
       x: rows.map(r => r.date), y: rows.map(r => r.avg_tone),
       type: 'scatter', mode: 'lines',
       name: formatOrg(org),
-      line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
+      line: { color: orgColor(org, i), width: 2 },
     }
   })
 
@@ -140,7 +140,7 @@ export default function CompanyComparison({ filters }) {
       x: rows.map(r => r.date), y: rows.map(r => r.article_count),
       type: 'scatter', mode: 'lines',
       name: formatOrg(org),
-      line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
+      line: { color: orgColor(org, i), width: 2 },
     }
   })
   const usToneTraces = orgNamesUS.map((org, i) => {
@@ -149,7 +149,7 @@ export default function CompanyComparison({ filters }) {
       x: rows.map(r => r.date), y: rows.map(r => r.avg_tone),
       type: 'scatter', mode: 'lines',
       name: formatOrg(org),
-      line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
+      line: { color: orgColor(org, i), width: 2 },
     }
   })
 

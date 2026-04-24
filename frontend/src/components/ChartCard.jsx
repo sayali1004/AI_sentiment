@@ -69,11 +69,29 @@ export const DARK_GEO_USA = {
   showsubunits: true,
 }
 
-// Line chart colours that look good on dark bg
-export const LINE_COLORS = [
-  '#818cf8', '#a78bfa', '#34d399', '#fbbf24',
-  '#fb7185', '#38bdf8', '#f97316', '#e879f9',
-]
+// Per-company colours — ensures consistent, distinct colours regardless of data order
+export const ORG_COLORS = {
+  anthropic:             '#818cf8', // indigo
+  openai:                '#34d399', // emerald
+  google:                '#f43f5e', // crimson
+  microsoft:             '#38bdf8', // sky blue
+  meta:                  '#fb7185', // rose
+  nvidia:                '#22d3ee', // cyan
+  amazon:                '#fbbf24', // amber
+  apple:                 '#e879f9', // fuchsia
+  xai:                   '#f97316', // orange
+  mistral:               '#a3e635', // lime
+  deepseek:              '#2dd4bf', // teal
+  anduril:               '#a78bfa', // violet
+  palantir:              '#94a3b8', // slate
+  department_of_defense: '#dc2626', // red
+}
+
+export const LINE_COLORS = Object.values(ORG_COLORS)
+
+export function orgColor(orgName, fallbackIndex) {
+  return ORG_COLORS[orgName] ?? LINE_COLORS[fallbackIndex % LINE_COLORS.length]
+}
 
 export default function ChartCard({ title, className = '', children, style = {} }) {
   return (

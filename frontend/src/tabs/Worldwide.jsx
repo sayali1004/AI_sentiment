@@ -5,7 +5,7 @@ import {
   getTimeseriesPerOrg,
 } from '../api.js'
 import MetricCard from '../components/MetricCard.jsx'
-import ChartCard, { SpacePlot, SENTIMENT_COLOR_SCALE, DARK_GEO, LINE_COLORS } from '../components/ChartCard.jsx'
+import ChartCard, { SpacePlot, SENTIMENT_COLOR_SCALE, DARK_GEO, orgColor } from '../components/ChartCard.jsx'
 
 function formatOrg(o) {
   return o.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -86,7 +86,7 @@ export default function Worldwide({ filters }) {
       x: rows.map(r => r.date), y: rows.map(r => r.article_count),
       type: 'scatter', mode: 'lines',
       name: formatOrg(org),
-      line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
+      line: { color: orgColor(org, i), width: 2 },
     }
   })
   const orgToneTraces = orgNames.map((org, i) => {
@@ -95,7 +95,7 @@ export default function Worldwide({ filters }) {
       x: rows.map(r => r.date), y: rows.map(r => r.avg_tone),
       type: 'scatter', mode: 'lines',
       name: formatOrg(org),
-      line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
+      line: { color: orgColor(org, i), width: 2 },
     }
   })
 
