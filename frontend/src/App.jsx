@@ -6,6 +6,7 @@ import Worldwide from './tabs/Worldwide.jsx'
 import US from './tabs/US.jsx'
 import SuperBowl from './tabs/SuperBowl.jsx'
 import DataCenters from './tabs/DataCenters.jsx'
+import CompanyComparison from './tabs/CompanyComparison.jsx'
 import TopicDeepDive from './tabs/TopicDeepDive.jsx'
 import SWOT from './tabs/SWOT.jsx'
 import Chat from './tabs/Chat.jsx'
@@ -16,6 +17,7 @@ const TABS = [
   { id: 'us',         icon: '⬡', label: 'US' },
   { id: 'superbowl',  icon: '◈', label: 'Super Bowl' },
   { id: 'datacenters',icon: '⊕', label: 'Data Centers' },
+  { id: 'comparison', icon: '⊞', label: 'Company Comparison' },
   { id: 'deepdive',   icon: '⊗', label: 'Deep Dive' },
   { id: 'swot',       icon: '◇', label: 'SWOT' },
   { id: 'chat',       icon: '⟡', label: 'Ask the Data' },
@@ -45,6 +47,7 @@ export default function App() {
       case 'us':          return <US filters={filters} />
       case 'superbowl':   return <SuperBowl />
       case 'datacenters': return <DataCenters filters={filters} />
+      case 'comparison':  return <CompanyComparison filters={filters} />
       case 'deepdive':    return <TopicDeepDive filters={filters} />
       case 'swot':        return <SWOT filters={filters} />
       case 'chat':        return <Chat />
