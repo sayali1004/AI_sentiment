@@ -12,7 +12,6 @@ import SWOT from './tabs/SWOT.jsx'
 import Chat from './tabs/Chat.jsx'
 
 const TABS = [
-  { id: 'about',      icon: '✦', label: 'About' },
   { id: 'worldwide',  icon: '◎', label: 'Worldwide' },
   { id: 'us',         icon: '⬡', label: 'US' },
   { id: 'superbowl',  icon: '◈', label: 'Super Bowl' },
@@ -21,6 +20,7 @@ const TABS = [
   { id: 'deepdive',   icon: '⊗', label: 'Deep Dive' },
   { id: 'swot',       icon: '◇', label: 'SWOT' },
   { id: 'chat',       icon: '⟡', label: 'Ask the Data' },
+  { id: 'about',      icon: '✦', label: 'About' },
 ]
 
 function getDefaultDates() {
@@ -34,7 +34,7 @@ function getDefaultDates() {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('about')
+  const [activeTab, setActiveTab] = useState('worldwide')
   const [filters, setFilters] = useState({
     ...getDefaultDates(),
     selectedOrgs: ['anthropic', 'openai', 'google'],
