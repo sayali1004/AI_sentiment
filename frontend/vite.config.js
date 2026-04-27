@@ -13,13 +13,4 @@ export default defineConfig({
       },
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          plotly: ['plotly.js', 'react-plotly.js'],
-        },
-      },
-    },
-  },
 })
