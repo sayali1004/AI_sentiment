@@ -53,7 +53,7 @@ export default function Worldwide({ filters }) {
   }, [startDate, endDate, selectedOrgs])
 
   if (loading) return <Loader />
-  if (error) return <div className="banner error">Error: {error}</div>
+  if (error) return <div className="banner error">{error.includes('fetch') ? 'Backend is taking a while to start — please refresh in a moment.' : `Error: ${error}`}</div>
   if (!worldData.length) return <div className="banner info">No data available for the selected date range.</div>
 
   // KPIs

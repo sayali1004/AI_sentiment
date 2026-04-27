@@ -3,13 +3,22 @@
 const IS_DEV = import.meta.env.DEV
 const BASE = (IS_DEV ? '' : 'https://ai-sentiment-bli0.onrender.com') + '/api'
 
-async function fetchJSON(url) {
-  const res = await fetch(url)
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `HTTP ${res.status}`)
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+
+async function fetchJSON(url, retries = 3, delayMs = 8000) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url)
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || `HTTP ${res.status}`)
+      }
+      return res.json()
+    } catch (err) {
+      if (attempt === retries) throw err
+      await sleep(delayMs)
+    }
   }
-  return res.json()
 }
 
 function buildParams(base, extras = {}) {

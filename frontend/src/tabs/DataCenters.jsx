@@ -47,7 +47,7 @@ export default function DataCenters({ filters }) {
   }, [startDate, endDate])
 
   if (loading) return <Loader />
-  if (error) return <div className="banner error">Error: {error}</div>
+  if (error) return <div className="banner error">{error.includes('fetch') ? 'Backend is taking a while to start — please refresh in a moment.' : `Error: ${error}`}</div>
   if (!worldData.length) return (
     <div className="banner info">
       No data center articles found for the selected date range.
@@ -93,9 +93,10 @@ export default function DataCenters({ filters }) {
       </div>
 
       <div className="metrics-row">
+        <MetricCard label="Global Avg Tone" value={globalAvgTone.toFixed(2)} />
         <MetricCard label="Total Articles" value={totalArticles.toLocaleString()} />
         <MetricCard label="Countries Covered" value={countriesCovered} />
-        <MetricCard label="Global Avg Tone" value={globalAvgTone.toFixed(2)} />
+      
       </div>
 
       <hr className="divider" />

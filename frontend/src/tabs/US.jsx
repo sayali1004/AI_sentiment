@@ -53,7 +53,7 @@ export default function US({ filters }) {
   }, [startDate, endDate, selectedOrgs])
 
   if (loading) return <Loader />
-  if (error) return <div className="banner error">Error: {error}</div>
+  if (error) return <div className="banner error">{error.includes('fetch') ? 'Backend is taking a while to start — please refresh in a moment.' : `Error: ${error}`}</div>
   if (!stateData.length) return <div className="banner info">No US state data for the selected date range.</div>
 
   const totalArticles = stateData.reduce((s, r) => s + (r.article_count || 0), 0)

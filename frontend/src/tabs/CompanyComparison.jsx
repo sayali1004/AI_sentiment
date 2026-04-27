@@ -169,7 +169,7 @@ export default function CompanyComparison({ filters }) {
       {selectedOrgs.length > 0 && loading && <Loader />}
 
       {selectedOrgs.length > 0 && error && (
-        <div className="banner error">Error: {error}</div>
+        <div className="banner error">{error.includes('fetch') ? 'Backend is taking a while to start — please refresh in a moment.' : `Error: ${error}`}</div>
       )}
 
       {selectedOrgs.length > 0 && !loading && !error && (
