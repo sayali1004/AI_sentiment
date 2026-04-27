@@ -124,6 +124,14 @@ def _to_int(v, default=0):
 
 
 # ---------------------------------------------------------------------------
+# Health check — used by frontend to wake up Render on cold start
+# ---------------------------------------------------------------------------
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+
+
 # Sentiment endpoints
 # ---------------------------------------------------------------------------
 

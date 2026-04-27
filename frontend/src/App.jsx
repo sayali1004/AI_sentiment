@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import Stars from './Stars.jsx'
 import Sidebar from './components/Sidebar.jsx'
-import About from './tabs/About.jsx'
-import Worldwide from './tabs/Worldwide.jsx'
-import US from './tabs/US.jsx'
-import SuperBowl from './tabs/SuperBowl.jsx'
-import DataCenters from './tabs/DataCenters.jsx'
-import CompanyComparison from './tabs/CompanyComparison.jsx'
-import TopicDeepDive from './tabs/TopicDeepDive.jsx'
-import SWOT from './tabs/SWOT.jsx'
-import Chat from './tabs/Chat.jsx'
+
+const About          = lazy(() => import('./tabs/About.jsx'))
+const Worldwide      = lazy(() => import('./tabs/Worldwide.jsx'))
+const US             = lazy(() => import('./tabs/US.jsx'))
+const SuperBowl      = lazy(() => import('./tabs/SuperBowl.jsx'))
+const DataCenters    = lazy(() => import('./tabs/DataCenters.jsx'))
+const CompanyComparison = lazy(() => import('./tabs/CompanyComparison.jsx'))
+const TopicDeepDive  = lazy(() => import('./tabs/TopicDeepDive.jsx'))
+const SWOT           = lazy(() => import('./tabs/SWOT.jsx'))
+const Chat           = lazy(() => import('./tabs/Chat.jsx'))
 
 const TABS = [
   { id: 'worldwide',  icon: '◎', label: 'Worldwide' },
@@ -23,6 +24,9 @@ const TABS = [
   { id: 'about',      icon: '✦', label: 'About' },
 ]
 
+const IS_DEV = import.meta.env.DEV
+const BACKEND = IS_DEV ? '' : 'https://ai-sentiment-bli0.onrender.com'
+
 function getDefaultDates() {
   const today = new Date()
   const start = new Date(today)
@@ -33,12 +37,26 @@ function getDefaultDates() {
   }
 }
 
+function TabFallback() {
+  return (
+    <div className="loader-wrap">
+      <div className="orbit-loader" />
+      <div className="loader-text">LOADING...</div>
+    </div>
+  )
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('worldwide')
   const [filters, setFilters] = useState({
     ...getDefaultDates(),
     selectedOrgs: ['anthropic', 'openai', 'google'],
   })
+
+  // Ping the backend on mount so Render wakes up before the user needs data
+  useEffect(() => {
+    fetch(`${BACKEND}/api/health`).catch(() => {})
+  }, [])
 
   const renderTab = () => {
     switch (activeTab) {
@@ -62,7 +80,6 @@ export default function App() {
         <Sidebar filters={filters} onFiltersChange={setFilters} />
 
         <div className="main-content">
-          {/* Tab navigation */}
           <nav className="tab-nav">
             {TABS.map(tab => (
               <button
@@ -76,9 +93,10 @@ export default function App() {
             ))}
           </nav>
 
-          {/* Active tab content */}
           <div className="tab-panel">
-            {renderTab()}
+            <Suspense fallback={<TabFallback />}>
+              {renderTab()}
+            </Suspense>
           </div>
         </div>
       </div>
