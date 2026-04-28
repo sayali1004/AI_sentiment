@@ -52,7 +52,7 @@ export default function About() {
       <div className="about-hero">
         <div className="about-hero-eyebrow">✦ Observatory</div>
         <div className="about-hero-title">AI Sentiment Observatory</div>
-        <div className="about-hero-sub">Tracking how the world feels about AI — one headline at a time.</div>
+        <div className="about-hero-sub">Tracking how the world feels about AI : one headline at a time.</div>
         <div className="about-hero-orbs" aria-hidden>
           <div className="orb orb-1" />
           <div className="orb orb-2" />
