@@ -82,7 +82,7 @@ export default function Worldwide({ filters }) {
       }]
     }
     const VOLUME_SCALE = [
-      [0, '#0f0900'], [0.25, '#6b3d00'], [0.5, '#b86800'], [0.75, '#e8930a'], [1, '#f97316'],
+      [0, '#1e0a3c'], [0.25, '#4c1d95'], [0.5, '#7c3aed'], [0.75, '#a78bfa'], [1, '#ddd6fe'],
     ]
     if (mapMetric === 'Total Volume') {
       return [{
