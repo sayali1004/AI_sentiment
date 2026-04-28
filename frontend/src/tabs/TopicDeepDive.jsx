@@ -219,7 +219,7 @@ export default function TopicDeepDive({ filters = {} }) {
   return (
     <div>
       <div className="page-header">
-        <div className="page-title">Topic Deep Dive</div>
+        <div className="page-title">State Comparison</div>
         <div className="page-subtitle">{startDate} → {endDate}</div>
       </div>
 

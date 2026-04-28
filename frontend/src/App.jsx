@@ -18,7 +18,7 @@ const TABS = [
   { id: 'superbowl',  icon: '◈', label: 'Super Bowl',         Component: SuperBowl,         hasFilters: false },
   { id: 'datacenters',icon: '⊕', label: 'Data Centers',       Component: DataCenters,       hasFilters: true },
   { id: 'comparison', icon: '⊞', label: 'Company Comparison', Component: CompanyComparison, hasFilters: true },
-  { id: 'deepdive',   icon: '⊗', label: 'Deep Dive',          Component: TopicDeepDive,     hasFilters: true },
+  { id: 'deepdive',   icon: '⊗', label: 'State Comparison',    Component: TopicDeepDive,     hasFilters: true },
   { id: 'swot',       icon: '◇', label: 'SWOT',               Component: SWOT,              hasFilters: true },
   { id: 'chat',       icon: '⟡', label: 'Ask the Data',       Component: Chat,              hasFilters: false },
   { id: 'about',      icon: '✦', label: 'About',              Component: About,             hasFilters: false },

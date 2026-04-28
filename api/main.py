@@ -771,17 +771,33 @@ def get_top_articles(
 ):
     client = get_supabase()
 
+    def _is_legible(title: str) -> bool:
+        if not title or len(title) < 20:
+            return False
+        words = title.split()
+        if len(words) < 4:
+            return False
+        if re.search(r'https?://|www\.|\.\w{2,3}/', title, re.I):
+            return False
+        ascii_count = sum(1 for c in title if ord(c) < 128)
+        if ascii_count / len(title) < 0.8:
+            return False
+        alpha_count = sum(1 for c in title if c.isalpha())
+        if alpha_count / len(title) < 0.5:
+            return False
+        return True
+
     def _fetch(desc: bool):
         q = (client.table("articles")
              .select("title, avg_tone, published_date, mentioned_country_code, organizations")
              .gte("published_date", start_date)
              .lte("published_date", end_date)
              .order("avg_tone", desc=desc)
-             .limit(n * 3))
+             .limit(n * 6))
         if org_filter and len(org_filter) == 1:
             q = q.contains("organizations", [org_filter[0]])
         rows = q.execute().data or []
-        return [r for r in rows if not (r.get("title") or "").startswith("http")][:n]
+        return [r for r in rows if _is_legible(r.get("title", ""))][:n]
 
     def _fmt(rows):
         return [
