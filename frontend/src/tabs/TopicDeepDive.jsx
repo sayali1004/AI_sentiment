@@ -41,8 +41,23 @@ function ToneTag({ tone }) {
   )
 }
 
+function isLegible(title) {
+  if (!title || title.length < 25) return false
+  if (/&#x?[0-9a-fA-F]+;|&[a-zA-Z]+;/.test(title)) return false
+  if (/https?:\/\/|www\.|\b\w+\.(net|com|org|io|co)\b/i.test(title)) return false
+  if (/[-|]\s*[A-Z][^\s]+\.[a-z]{2,4}\s*$/.test(title)) return false
+  const words = title.split(/\s+/)
+  if (words.length < 5) return false
+  const ascii = [...title].filter(c => c.charCodeAt(0) < 128).length
+  if (ascii / title.length < 0.85) return false
+  const alpha = [...title].filter(c => /[a-zA-Z]/.test(c)).length
+  if (alpha / title.length < 0.55) return false
+  return true
+}
+
 function ArticleTable({ rows, emptyMsg }) {
-  if (!rows || rows.length === 0) return <div className="banner info">{emptyMsg}</div>
+  const filtered = (rows || []).filter(r => isLegible(r.title)).slice(0, 10)
+  if (filtered.length === 0) return <div className="banner info">{emptyMsg}</div>
   return (
     <div className="expander-content" style={{ padding: 0 }}>
       <table className="data-table">
@@ -50,7 +65,7 @@ function ArticleTable({ rows, emptyMsg }) {
           <tr><th>Headline</th><th>Tone</th><th>Date</th><th>Country</th></tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {filtered.map((r, i) => (
             <tr key={i}>
               <td style={{ maxWidth: 460, wordBreak: 'break-word', fontSize: 12 }}>{r.title}</td>
               <td><ToneTag tone={r.avg_tone} /></td>
@@ -150,7 +165,7 @@ export default function TopicDeepDive({ filters = {} }) {
     setError(null)
     Promise.all([
       getTopicThemes(startDate, endDate, selectedOrgs),
-      getTopArticles(startDate, endDate, selectedOrgs, 10),
+      getTopArticles(startDate, endDate, selectedOrgs, 50),
       getSentimentByUsState(startDate, endDate),
     ])
       .then(([t, a, states]) => {
