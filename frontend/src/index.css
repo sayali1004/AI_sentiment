@@ -887,7 +887,7 @@ input[type="range"]::-webkit-slider-thumb {
 .chat-wrap {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 80px);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -992,31 +992,30 @@ input[type="range"]::-webkit-slider-thumb {
 .chat-input-row {
   display: flex;
   gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--glass-border);
-  margin-top: 12px;
+  margin-bottom: 20px;
 }
 
 .chat-input {
   flex: 1;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  padding: 10px 14px;
+  font-size: 14px;
+  padding: 13px 18px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
 }
 
 .chat-input:focus {
-  border-color: var(--stellar-dim);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  border-color: rgba(129, 140, 248, 0.9);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), 0 0 20px rgba(129,140,248,0.15);
 }
 
 .chat-input::placeholder {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .chat-send-btn {
