@@ -115,7 +115,7 @@ export default function US({ filters }) {
         locationmode: 'USA-states',
         locations: mapData.map(r => r.state_abbr),
         z: mapData.map(r => r.article_count),
-        colorscale: 'Blues',
+        colorscale: [[0, '#ede9fe'], [0.25, '#a78bfa'], [0.5, '#7c3aed'], [0.75, '#4c1d95'], [1, '#2e0a6e']],
         text: mapData.map(r => `${r.state_abbr}<br>Articles: ${r.article_count}`),
         hoverinfo: 'text',
         showscale: true,
