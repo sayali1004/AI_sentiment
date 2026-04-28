@@ -40,7 +40,7 @@ const TEAM = [
   {
     name: 'Sayali Shelke', photo: sayaliPhoto,
     github: 'https://github.com/sayali1004', handle: '@sayali1004',
-    bio: "Data Scientist and Analyst with a passion for building tools that make complex data accessible and actionable. Particularly interested in the intersection of AI and media, and how data can be used to understand public narratives around emerging technologies.",
+    bio: "I'm a Data Scientist and Analyst with a passion for building tools that make complex data accessible and actionable. I have experience working with large datasets, building machine learning models, and developing web applications. I'm particularly interested in the intersection of AI and media, and how we can use data to understand and shape public narratives around emerging technologies. In my free time, I enjoy exploring new programming languages, contributing to open-source projects, and staying up-to-date with the latest developments in AI research. I also like cooking and trying out new recipes, and traveling to new places!",
   },
 ]
 
