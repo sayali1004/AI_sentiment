@@ -2,14 +2,9 @@ import { useEffect, useState } from 'react'
 import {
   getSentimentByCountry,
   getSentimentTimeseries,
-  getTimeseriesPerOrg,
 } from '../api.js'
 import MetricCard from '../components/MetricCard.jsx'
-import ChartCard, { SpacePlot, SENTIMENT_COLOR_SCALE, DARK_GEO, orgColor } from '../components/ChartCard.jsx'
-
-function formatOrg(o) {
-  return o.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-}
+import ChartCard, { SpacePlot, SENTIMENT_COLOR_SCALE, DARK_GEO } from '../components/ChartCard.jsx'
 
 function Loader() {
   return (
@@ -21,11 +16,10 @@ function Loader() {
 }
 
 export default function Worldwide({ filters }) {
-  const { startDate, endDate, selectedOrgs } = filters
+  const { startDate, endDate } = filters
 
   const [worldData, setWorldData] = useState([])
   const [tsAll, setTsAll] = useState([])
-  const [tsOrg, setTsOrg] = useState([])
   const [mapMetric, setMapMetric] = useState('Avg Sentiment')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -44,13 +38,6 @@ export default function Worldwide({ filters }) {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [startDate, endDate])
-
-  useEffect(() => {
-    if (selectedOrgs.length === 0) { setTsOrg([]); return }
-    getTimeseriesPerOrg(startDate, endDate, selectedOrgs)
-      .then(setTsOrg)
-      .catch(() => setTsOrg([]))
-  }, [startDate, endDate, selectedOrgs])
 
   if (loading) return <Loader />
   if (error) return <div className="banner error">{error.includes('fetch') ? 'Backend is taking a while to start — please refresh in a moment.' : `Error: ${error}`}</div>
@@ -78,27 +65,6 @@ export default function Worldwide({ filters }) {
     name: 'Avg Tone',
   }
 
-  // Per-org timeseries
-  const orgNames = [...new Set(tsOrg.map(r => r.org_name))]
-  const orgVolTraces = orgNames.map((org, i) => {
-    const rows = tsOrg.filter(r => r.org_name === org)
-    return {
-      x: rows.map(r => r.date), y: rows.map(r => r.article_count),
-      type: 'scatter', mode: 'lines',
-      name: formatOrg(org),
-      line: { color: orgColor(org, i), width: 2 },
-    }
-  })
-  const orgToneTraces = orgNames.map((org, i) => {
-    const rows = tsOrg.filter(r => r.org_name === org)
-    return {
-      x: rows.map(r => r.date), y: rows.map(r => r.avg_tone),
-      type: 'scatter', mode: 'lines',
-      name: formatOrg(org),
-      line: { color: orgColor(org, i), width: 2 },
-    }
-  })
-
   // World map
   const mapped = worldData.filter(r => r.iso3)
   const mapTrace = () => {
@@ -115,12 +81,15 @@ export default function Worldwide({ filters }) {
         colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Tone', font: { color: '#94a3b8' } } },
       }]
     }
+    const VOLUME_SCALE = [
+      [0, '#0f0900'], [0.25, '#6b3d00'], [0.5, '#b86800'], [0.75, '#e8930a'], [1, '#f97316'],
+    ]
     if (mapMetric === 'Total Volume') {
       return [{
         type: 'choropleth',
         locations: mapped.map(r => r.iso3),
         z: mapped.map(r => r.article_count),
-        colorscale: 'Blues',
+        colorscale: VOLUME_SCALE,
         text: mapped.map(r => `${r.country_code}<br>Articles: ${r.article_count}`),
         hoverinfo: 'text',
         showscale: true,
@@ -133,7 +102,7 @@ export default function Worldwide({ filters }) {
       locations: apm.map(r => r.iso3),
       z: apm.map(r => r.articles_per_million),
       zmax: 120,
-      colorscale: 'Blues',
+      colorscale: VOLUME_SCALE,
       text: apm.map(r => `${r.country_code}<br>Per million: ${r.articles_per_million?.toFixed(1)}`),
       hoverinfo: 'text',
       showscale: true,
@@ -174,26 +143,6 @@ export default function Worldwide({ filters }) {
           />
         </ChartCard>
       </div>
-
-      {selectedOrgs.length > 0 && (
-        <>
-          <hr className="divider" />
-          <div className="section-header">By Company</div>
-          {tsOrg.length === 0
-            ? <div className="banner info">No per-company data for this date range.</div>
-            : (
-              <div className="charts-row">
-                <ChartCard title="DAILY VOLUME BY COMPANY">
-                  <SpacePlot data={orgVolTraces} layout={{ yaxis: { title: 'Articles' } }} />
-                </ChartCard>
-                <ChartCard title="DAILY SENTIMENT BY COMPANY">
-                  <SpacePlot data={orgToneTraces} layout={{ yaxis: { title: 'Avg Tone' } }} />
-                </ChartCard>
-              </div>
-            )
-          }
-        </>
-      )}
 
       <hr className="divider" />
       <div className="section-header">World Map</div>
