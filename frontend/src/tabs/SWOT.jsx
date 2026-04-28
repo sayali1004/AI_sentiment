@@ -6,7 +6,7 @@ const PROJECT_SWOT = {
     'High Accuracy: VADER achieves 83% sentiment accuracy',
     'Semantic Search: 384-dim embeddings, <200ms queries',
     'Open Source: Fully reproducible research',
-    'Geographic Coverage: 22+ US states tracked',
+    'Geographic Coverage: 50 US states tracked',
     'Theme Taxonomy: 49 categories (25 neg, 24 pos)',
     'Fast Response: <3 sec query-to-answer total time',
     'Natural Language: No SQL knowledge required',
