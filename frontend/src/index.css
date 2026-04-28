@@ -830,7 +830,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .about-big-label {
-  font-size: 52px;
+  font-size: 36px;
   font-weight: 800;
   background: linear-gradient(135deg, #c4b5fd, #818cf8);
   -webkit-background-clip: text;

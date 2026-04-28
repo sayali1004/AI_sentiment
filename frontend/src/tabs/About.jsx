@@ -35,7 +35,7 @@ const TEAM = [
   {
     name: 'Jet van Genuchten', photo: jetPhoto,
     github: 'https://github.com/HenriettePlane', handle: '@HenriettePlane',
-    bio: "Over the past 9 years, I've led product teams at companies like Weight Watchers, Enter, and Zenjob, consistently shipping features that move the needle. I'm drawn to the intersection of data infrastructure and user experience — whether wrangling fragmented datasets, optimising matching algorithms, or building cross-device identity graphs.",
+    bio: "Over the past 9 years, I've led product teams at companies like Weight Watchers, Enter, and Zenjob, consistently shipping features that move the needle. At Weight Watchers, I pioneered the company's first A/B testing program in 60 years and launched product changes that increased subscription revenue by 1%. At Enter, I designed and launched a digital marketplace using no-code tools for rapid iteration, then strategically scaled with production code. At Zenjob, I automated a weeks-long manual contract process down to 10 minutes, boosting conversion from signup to contract by 33%. I'm drawn to the intersection of data infrastructure and user experience. Whether that's wrangling fragmented nutrition datasets into a unified global database, optimizing matching algorithms for gig workers, or building cross-device identity graphs for ad-tech platforms, I believe the best products are built on solid data foundations and ruthless workflow automation.",
   },
   {
     name: 'Sayali Shelke', photo: sayaliPhoto,
@@ -63,7 +63,7 @@ export default function About() {
       {/* ── Why / What ── */}
       <div className="about-why-what">
         <div className="about-big-card">
-          <div className="about-big-label">◎ Why</div>
+          <div className="about-big-label">Why</div>
           <div className="about-big-body">
             Researchers and investors in AI lack a clear, up-to-date view of how attitudes are shifting in global media.
             <br /><br />
@@ -71,7 +71,7 @@ export default function About() {
           </div>
         </div>
         <div className="about-big-card about-big-card--alt">
-          <div className="about-big-label">⊕ What</div>
+          <div className="about-big-label">What</div>
           <div className="about-big-body">
             An open-source dashboard that visualises <span className="about-highlight">global news sentiment about AI</span> using data from the{' '}
             <a href="https://www.gdeltproject.org/" target="_blank" rel="noreferrer" className="about-link">GDELT Project</a> — one of the largest open databases of world news events.
