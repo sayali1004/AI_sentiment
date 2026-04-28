@@ -63,7 +63,7 @@ export default function About() {
       {/* ── Why / What ── */}
       <div className="about-why-what">
         <div className="about-big-card">
-          <div className="about-big-label">Why</div>
+          <div className="about-big-label">Why?</div>
           <div className="about-big-body">
             Researchers and investors in AI lack a clear, up-to-date view of how attitudes are shifting in global media.
             <br /><br />
@@ -71,7 +71,7 @@ export default function About() {
           </div>
         </div>
         <div className="about-big-card about-big-card--alt">
-          <div className="about-big-label">What</div>
+          <div className="about-big-label">What?</div>
           <div className="about-big-body">
             An open-source dashboard that visualises <span className="about-highlight">global news sentiment about AI</span> using data from the{' '}
             <a href="https://www.gdeltproject.org/" target="_blank" rel="noreferrer" className="about-link">GDELT Project</a> — one of the largest open databases of world news events.
