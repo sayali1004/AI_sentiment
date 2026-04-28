@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getSentimentByOrg, getTimeseriesPerOrg, getTimeseriesPerOrgByCountry } from '../api.js'
+import { getSentimentByOrg, getTimeseriesPerOrg } from '../api.js'
 import ChartCard, { SpacePlot, LINE_COLORS } from '../components/ChartCard.jsx'
 
 const FOUNDATION_MODEL_ORGS = ['anthropic', 'openai', 'google', 'meta', 'xai', 'mistral', 'deepseek']
@@ -53,7 +53,6 @@ function MultiSelect({ options, value, onChange, formatFn = x => x }) {
 
 export default function SuperBowl() {
   const [weeks, setWeeks] = useState(2)
-  const [geo, setGeo] = useState('Worldwide')
   const [selectedOrgs, setSelectedOrgs] = useState(['anthropic', 'openai', 'google'])
   const [dataBefore, setDataBefore] = useState([])
   const [dataAfter, setDataAfter] = useState([])
@@ -70,13 +69,10 @@ export default function SuperBowl() {
     if (!selectedOrgs.length) return
     setLoading(true)
     setError(null)
-    const fetchTs = geo === 'US only'
-      ? getTimeseriesPerOrgByCountry(beforeStart, afterEnd, 'US', selectedOrgs)
-      : getTimeseriesPerOrg(beforeStart, afterEnd, selectedOrgs)
     Promise.all([
       getSentimentByOrg(beforeStart, beforeEnd, selectedOrgs),
       getSentimentByOrg(afterStart, afterEnd, selectedOrgs),
-      fetchTs,
+      getTimeseriesPerOrg(beforeStart, afterEnd, selectedOrgs),
     ])
       .then(([before, after, ts]) => {
         setDataBefore(before)
@@ -85,7 +81,7 @@ export default function SuperBowl() {
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [weeks, geo, selectedOrgs.join(',')])
+  }, [weeks, selectedOrgs.join(',')])
 
   const combined = [
     ...dataBefore.map(r => ({ ...r, period: 'Before' })),
@@ -146,15 +142,6 @@ export default function SuperBowl() {
           <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-muted)' }}>
             Before: {beforeStart} → {beforeEnd}<br />
             After: {afterStart} → {afterEnd}
-          </div>
-        </div>
-
-        <div className="control-card">
-          <div className="control-card-label">Geography</div>
-          <div className="radio-group" style={{ flexDirection: 'column', gap: 6 }}>
-            {['Worldwide', 'US only'].map(g => (
-              <button key={g} className={`radio-btn ${geo === g ? 'selected' : ''}`} onClick={() => setGeo(g)}>{g}</button>
-            ))}
           </div>
         </div>
 
