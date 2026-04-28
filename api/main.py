@@ -772,20 +772,25 @@ def get_top_articles(
     client = get_supabase()
 
     def _is_legible(title: str) -> bool:
-        if not title or len(title) < 20:
+        if not title or len(title) < 25:
             return False
         words = title.split()
-        if len(words) < 4:
+        if len(words) < 5:
             return False
-        if re.search(r'https?://|www\.|\.\w{2,3}/', title, re.I):
-            return False
+        # HTML entities anywhere in title
         if re.search(r'&#x?[0-9a-fA-F]+;|&[a-zA-Z]+;', title):
             return False
+        # URLs or bare domain names
+        if re.search(r'https?://|www\.|\b\w+\.(net|com|org|io|co)\b', title, re.I):
+            return False
+        # Site name appended after dash/pipe (e.g. "Headline - SiteName.net")
+        if re.search(r'[-|]\s*[A-Z][^\s]+\.[a-z]{2,4}\s*$', title):
+            return False
         ascii_count = sum(1 for c in title if ord(c) < 128)
-        if ascii_count / len(title) < 0.8:
+        if ascii_count / len(title) < 0.85:
             return False
         alpha_count = sum(1 for c in title if c.isalpha())
-        if alpha_count / len(title) < 0.5:
+        if alpha_count / len(title) < 0.55:
             return False
         return True
 
