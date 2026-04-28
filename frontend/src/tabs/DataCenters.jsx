@@ -78,12 +78,12 @@ export default function DataCenters({ filters }) {
   const mapped = worldData.filter(r => r.iso3)
   const worldTrace = worldMetric === 'Avg Sentiment'
     ? [{ type: 'choropleth', locations: mapped.map(r => r.iso3), z: mapped.map(r => r.avg_tone), zmin: -5, zmax: 5, colorscale: SENTIMENT_COLOR_SCALE, text: mapped.map(r => `${r.country_code}<br>Tone: ${r.avg_tone?.toFixed(2)}<br>Articles: ${r.article_count}`), hoverinfo: 'text', showscale: true, colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Tone', font: { color: '#94a3b8' } } } }]
-    : [{ type: 'choropleth', locations: mapped.map(r => r.iso3), z: mapped.map(r => r.article_count), colorscale: 'Blues', text: mapped.map(r => `${r.country_code}<br>Articles: ${r.article_count}`), hoverinfo: 'text', showscale: true, colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Articles', font: { color: '#94a3b8' } } } }]
+    : [{ type: 'choropleth', locations: mapped.map(r => r.iso3), z: mapped.map(r => r.article_count), colorscale: [[0, '#ede9fe'], [0.25, '#a78bfa'], [0.5, '#7c3aed'], [0.75, '#4c1d95'], [1, '#2e0a6e']], text: mapped.map(r => `${r.country_code}<br>Articles: ${r.article_count}`), hoverinfo: 'text', showscale: true, colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Articles', font: { color: '#94a3b8' } } } }]
 
   const usMapped = usData.filter(r => r.state_abbr)
   const usTrace = usMetric === 'Avg Sentiment'
     ? [{ type: 'choropleth', locationmode: 'USA-states', locations: usMapped.map(r => r.state_abbr), z: usMapped.map(r => r.avg_tone), zmin: -5, zmax: 5, colorscale: SENTIMENT_COLOR_SCALE, text: usMapped.map(r => `${r.state_abbr}<br>Tone: ${r.avg_tone?.toFixed(2)}`), hoverinfo: 'text', showscale: true, colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Tone', font: { color: '#94a3b8' } } } }]
-    : [{ type: 'choropleth', locationmode: 'USA-states', locations: usMapped.map(r => r.state_abbr), z: usMapped.map(r => r.article_count), colorscale: 'Blues', text: usMapped.map(r => `${r.state_abbr}<br>Articles: ${r.article_count}`), hoverinfo: 'text', showscale: true, colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Articles', font: { color: '#94a3b8' } } } }]
+    : [{ type: 'choropleth', locationmode: 'USA-states', locations: usMapped.map(r => r.state_abbr), z: usMapped.map(r => r.article_count), colorscale: [[0, '#ede9fe'], [0.25, '#a78bfa'], [0.5, '#7c3aed'], [0.75, '#4c1d95'], [1, '#2e0a6e']], text: usMapped.map(r => `${r.state_abbr}<br>Articles: ${r.article_count}`), hoverinfo: 'text', showscale: true, colorbar: { tickfont: { color: '#94a3b8' }, title: { text: 'Articles', font: { color: '#94a3b8' } } } }]
 
   return (
     <div>
