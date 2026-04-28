@@ -779,6 +779,8 @@ def get_top_articles(
             return False
         if re.search(r'https?://|www\.|\.\w{2,3}/', title, re.I):
             return False
+        if re.search(r'&#x?[0-9a-fA-F]+;|&[a-zA-Z]+;', title):
+            return False
         ascii_count = sum(1 for c in title if ord(c) < 128)
         if ascii_count / len(title) < 0.8:
             return False
